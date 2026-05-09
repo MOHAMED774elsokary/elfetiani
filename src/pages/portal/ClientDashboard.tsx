@@ -15,7 +15,7 @@ import { motion } from 'framer-motion';
 import {
   Scale, Flame, Dumbbell, TrendingDown, PlayCircle,
   CheckCircle2, Send, Star, Loader2, ChevronDown, ChevronUp,
-  ExternalLink, Image, Bell,
+  ExternalLink, Image,
 } from 'lucide-react';
 
 // ─── Stat Card ──────────────────────────────────────────────────────────────
