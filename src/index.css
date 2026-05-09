@@ -1,0 +1,215 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #FF5500;
+  --color-primary-hover: #E04B00;
+  --color-dark: #050505;
+  --color-dark-glass: rgba(17, 17, 17, 0.95);
+  --color-dark-card: #111111;
+  --color-dark-border: rgba(255, 255, 255, 0.05);
+  --font-sans: 'Inter', 'Cairo', system-ui, sans-serif;
+}
+
+@layer utilities {
+  .text-glow {
+    text-shadow: none;
+  }
+  
+  .text-hollow {
+    -webkit-text-stroke: 2px #FF5500;
+    color: transparent;
+  }
+  
+  .glass-card {
+    background: var(--color-dark-card);
+    border: 1px solid var(--color-dark-border);
+  }
+
+  .bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opactity='0.05'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    opacity: 0.03;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+  }
+
+  /* Hide scrollbar utility for horizontal carousels */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Safe area utilities for notched devices */
+  .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .pl-safe { padding-left: env(safe-area-inset-left, 0px); }
+  .pr-safe { padding-right: env(safe-area-inset-right, 0px); }
+  .mt-safe { margin-top: env(safe-area-inset-top, 0px); }
+  .mb-safe { margin-bottom: env(safe-area-inset-bottom, 0px); }
+}
+
+/* ─── Global Reset & Stability ───────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  /* Prevent layout shifts from scrollbars */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 85, 0, 0.2) transparent;
+}
+
+html {
+  /* Use dvh for mobile viewport stability (dynamic viewport height) */
+  height: 100%;
+  /* Prevent iOS text size inflation */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
+  /* Force hardware acceleration on the root */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-dark);
+  color: white;
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height — accounts for mobile browser chrome */
+  position: relative;
+  overflow-x: hidden;
+  /* Prevent pull-to-refresh causing layout jumps on mobile */
+  overscroll-behavior-y: contain;
+  /* Touch-friendly tap highlight */
+  -webkit-tap-highlight-color: rgba(255, 85, 0, 0.1);
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  /* Prevent any child from overflowing horizontally */
+  overflow-x: hidden;
+}
+
+/* ─── Smooth Scrollbar Styling ───────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 85, 0, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 85, 0, 0.4);
+}
+
+/* ─── Input & Form Stability ─────────────────────────────────────────────── */
+
+/* Prevent zoom on input focus on iOS (font-size >= 16px) */
+input,
+textarea,
+select {
+  font-size: 16px !important;
+}
+
+@media (min-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: inherit !important;
+  }
+}
+
+/* ─── Touch & Interaction ────────────────────────────────────────────────── */
+
+/* Prevent text selection on interactive elements */
+button,
+a,
+[role="button"] {
+  -webkit-user-select: none;
+  user-select: none;
+  /* Faster touch response on mobile */
+  touch-action: manipulation;
+}
+
+/* Ensure images don't cause layout shifts */
+img,
+video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ─── PWA Standalone Mode Adjustments ────────────────────────────────────── */
+
+@media all and (display-mode: standalone) {
+  /* Extra top padding in standalone mode for status bar */
+  .standalone-pt {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+/* ─── Animation Performance ──────────────────────────────────────────────── */
+
+/* Promote frequently animated elements to their own compositing layer */
+.will-change-transform {
+  will-change: transform;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Responsive Typography Clamp ────────────────────────────────────────── */
+
+/* Prevent text from overflowing containers */
+.break-words {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Line clamp utilities */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

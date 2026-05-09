@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>الفتياني Coaching</title>
+
+  <!-- PWA Meta Tags -->
+  <meta name="description" content="منصة تدريب ولياقة بدنية — El Fetiani Fitness Coaching" />
+  <meta name="theme-color" content="#FF5500" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="El Fetiani" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="msapplication-TileColor" content="#FF5500" />
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json" />
+
+  <!-- Apple Touch Icons -->
+  <link rel="apple-touch-icon" href="/icons/icon-512x512.png" />
+
+  <!-- Apple Splash Screens (iPhone) -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <style>
+    /* Safe area padding for notched devices */
+    :root {
+      --safe-area-inset-top: env(safe-area-inset-top);
+      --safe-area-inset-bottom: env(safe-area-inset-bottom);
+    }
+    .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+
+  <!-- Chatbase Integration -->
+  <style>
+    #chatbase-bubble-button { bottom: 80px !important; }
+    #chatbase-bubble-window { bottom: 140px !important; }
+  </style>
+  <script>
+    window.chatbaseConfig = {
+      chatbotId: "5hFoqiQsYX8_--Hf12mJz",
+      initialMessages: [
+        "مرحباً! لو محتاج أي تفاصيل عن الكوتش أو نظام التدريب، أنا هنا لمساعدتك"
+      ]
+    };
+  </script>
+  <script>
+    (function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="5hFoqiQsYX8_--Hf12mJz";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
+  </script>
+</body>
+
+</html>

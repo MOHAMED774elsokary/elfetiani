@@ -1,0 +1,66 @@
+<!-- PWA Icon Generation Script -->
+<!-- This is a helper HTML that generates all required PWA icon sizes from a canvas -->
+<!-- Open this file in a browser, right-click each canvas, and "Save Image As" -->
+<!DOCTYPE html>
+<html>
+<head><title>Icon Generator</title></head>
+<body style="background:#222;color:white;font-family:sans-serif;padding:2rem;">
+<h1>PWA Icon Generator — El Fetiani Coaching</h1>
+<p>Right-click each icon below and save as the specified filename into <code>public/icons/</code></p>
+<div id="icons" style="display:flex;flex-wrap:wrap;gap:20px;"></div>
+<script>
+const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+const container = document.getElementById('icons');
+
+sizes.forEach(size => {
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  
+  // Background
+  ctx.fillStyle = '#050505';
+  ctx.fillRect(0, 0, size, size);
+  
+  // Orange glow
+  const gradient = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+  gradient.addColorStop(0, 'rgba(255,85,0,0.15)');
+  gradient.addColorStop(1, 'rgba(255,85,0,0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, size, size);
+  
+  // Letter F
+  ctx.fillStyle = '#FF5500';
+  ctx.font = `900 ${Math.round(size * 0.55)}px Arial, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  
+  // Glow effect
+  ctx.shadowColor = '#FF5500';
+  ctx.shadowBlur = size * 0.08;
+  ctx.fillText('F', size/2, size/2 + size*0.02);
+  
+  // White outline of F
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1;
+  ctx.strokeText('F', size/2, size/2 + size*0.02);
+  
+  const wrapper = document.createElement('div');
+  wrapper.style.textAlign = 'center';
+  wrapper.innerHTML = `<p>icon-${size}x${size}.png</p>`;
+  wrapper.appendChild(canvas);
+  
+  // Auto-download link
+  const link = document.createElement('a');
+  link.download = `icon-${size}x${size}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.textContent = `Download ${size}x${size}`;
+  link.style.cssText = 'display:block;margin-top:8px;color:#FF5500;';
+  wrapper.appendChild(link);
+  
+  container.appendChild(wrapper);
+});
+</script>
+</body>
+</html>

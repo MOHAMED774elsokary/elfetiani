@@ -1,0 +1,33 @@
+{
+  "name": "الفتياني Coaching",
+  "short_name": "El Fetiani",
+  "description": "منصة تدريب ولياقة بدنية - El Fetiani Fitness Coaching Platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#FF5500",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "dir": "rtl",
+  "lang": "ar",
+  "categories": ["fitness", "health", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
