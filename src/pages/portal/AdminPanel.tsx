@@ -18,7 +18,7 @@ import {
   createUserWithEmailAndPassword,
   signOut,
 } from 'firebase/auth';
-import { auth, secondaryAuth } from '../../portal/firebase';
+import { secondaryAuth } from '../../portal/firebase';
 import type {
   Client,
   WorkoutPlan,
