@@ -12,6 +12,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'offline.html', 'icons/*.png'],
       workbox: {
+        maximumFileSizeToCacheInBytes: 10000000, // 10MB
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         navigateFallback: '/index.html',
         runtimeCaching: [

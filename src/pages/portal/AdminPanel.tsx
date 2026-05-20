@@ -16,8 +16,9 @@ import {
 import { notifyWorkoutAssigned, notifyNutritionUpdated } from '../../portal/notifications';
 import {
   createUserWithEmailAndPassword,
+  signOut,
 } from 'firebase/auth';
-import { auth } from '../../portal/firebase';
+import { auth, secondaryAuth } from '../../portal/firebase';
 import type {
   Client,
   WorkoutPlan,
@@ -412,8 +413,11 @@ function AddClient() {
     setError('');
     setLoading(true);
     try {
-      // 1. Create Firebase Auth account for client
-      const cred = await createUserWithEmailAndPassword(auth, form.email, form.password);
+      // 1. Create Firebase Auth account for client using secondary auth instance
+      const cred = await createUserWithEmailAndPassword(secondaryAuth, form.email, form.password);
+      // Immediately sign out from the secondary instance so we don't leave it authenticated
+      await signOut(secondaryAuth);
+      
       const clientId = `client-${uid()}`;
 
       const startObj = new Date();
