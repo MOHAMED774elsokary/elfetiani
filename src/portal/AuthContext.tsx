@@ -51,15 +51,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             clientId: mapping.clientId,
           });
         } else {
-          // No mapping — treat as coach (first coach account) and auto-initialize in Firestore
+          // No mapping — only treat the specific coach email as a coach
+          const isCoachEmail = firebaseUser.email?.toLowerCase() === 'elfetianiabdo@gmail.com';
+          const assignedRole = isCoachEmail ? 'coach' : 'client';
+          
           setCurrentUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email || '',
-            role: 'coach',
+            role: assignedRole,
           });
-          setCoachMapping(firebaseUser.uid).catch(err => {
-            console.error("Auto-initializing coach mapping failed:", err);
-          });
+          
+          // Auto-heal only for the coach
+          if (isCoachEmail) {
+            setCoachMapping(firebaseUser.uid).catch(err => {
+              console.error("Auto-initializing coach mapping failed:", err);
+            });
+          }
         }
       } catch (err) {
         console.error("Error fetching user mapping:", err);
