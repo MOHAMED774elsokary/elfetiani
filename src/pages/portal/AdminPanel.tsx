@@ -21,6 +21,7 @@ import {
   inMemoryPersistence
 } from 'firebase/auth';
 import { secondaryAuth } from '../../portal/firebase';
+import NotificationSettings from '../../portal/NotificationSettings';
 import type {
   Client,
   WorkoutPlan,
@@ -1131,6 +1132,7 @@ export default function AdminPanel() {
         <Route index element={<ClientList />} />
         <Route path="add" element={<AddClient />} />
         <Route path="client/:clientId" element={<ClientDetail />} />
+        <Route path="notifications" element={<NotificationSettings />} />
       </Routes>
     </PortalLayout>
   );

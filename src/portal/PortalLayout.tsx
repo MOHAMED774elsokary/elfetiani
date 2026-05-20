@@ -10,6 +10,7 @@ import {
   LogOut,
   ShieldCheck,
   ClipboardList,
+  BellRing,
 } from 'lucide-react';
 
 interface Props {
@@ -50,6 +51,7 @@ export default function PortalLayout({ children, title }: Props) {
   const coachLinks = [
     { to: '/portal/admin', icon: Users, label: 'العملاء', labelEn: 'Clients' },
     { to: '/portal/admin/add', icon: ShieldCheck, label: 'إضافة عميل', labelEn: 'Add Client' },
+    { to: '/portal/admin/notifications', icon: BellRing, label: 'الإشعارات', labelEn: 'Notifications' },
   ];
 
   const links = isCoach ? coachLinks : clientLinks;
