@@ -19,7 +19,7 @@ export default function CoachSetupPage() {
     setError('');
     setLoading(true);
     try {
-      if (email.trim().toLowerCase() !== 'elfetianiabdo@gmail.com') {
+      if (email.trim().toLowerCase() !== 'elfetyaniabdo@gmail.com') {
         setError('هذه الصفحة مخصصة لحساب المدرب الرسمي فقط');
         setLoading(false);
         return;

@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           });
         } else {
           // No mapping — only treat the specific coach email as a coach
-          const isCoachEmail = firebaseUser.email?.toLowerCase() === 'elfetianiabdo@gmail.com';
+          const isCoachEmail = firebaseUser.email?.toLowerCase() === 'elfetyaniabdo@gmail.com';
           const assignedRole = isCoachEmail ? 'coach' : 'client';
           
           setCurrentUser({
