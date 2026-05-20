@@ -447,6 +447,7 @@ function AddClient() {
 
       setCreatedClient({ name: form.name, email: form.email, pass: form.password, phone: form.phone, sub: subText, end: endDate });
     } catch (err: unknown) {
+      console.error("CREATE CLIENT ERROR:", err);
       const code = (err as { code?: string }).code;
       const messages: Record<string, string> = {
         'auth/email-already-in-use': 'هذا البريد مستخدم بالفعل',

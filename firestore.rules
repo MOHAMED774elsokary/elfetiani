@@ -13,10 +13,10 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/userMappings/$(request.auth.uid)).data.clientId;
     }
 
-    // User mappings — authenticated users can read their own
+    // User mappings — authenticated users can read their own, coach can read all
     match /userMappings/{uid} {
-      allow read: if request.auth != null && request.auth.uid == uid;
-      allow write: if request.auth != null && isCoach();
+      allow read: if request.auth != null && (request.auth.uid == uid || isCoach());
+      allow write: if request.auth != null && (isCoach() || request.auth.uid == uid);
     }
 
     // Clients

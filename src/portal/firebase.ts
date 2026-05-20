@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
@@ -11,8 +11,10 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
-export const secondaryApp = initializeApp(firebaseConfig, 'Secondary');
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+export const secondaryApp = getApps().find(a => a.name === 'Secondary')
+  ? getApp('Secondary')
+  : initializeApp(firebaseConfig, 'Secondary');
 
 export const auth = getAuth(app);
 export const secondaryAuth = getAuth(secondaryApp);

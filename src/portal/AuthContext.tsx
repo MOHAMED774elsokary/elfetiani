@@ -10,7 +10,7 @@ import {
   type User as FirebaseUser,
 } from 'firebase/auth';
 import { auth } from './firebase';
-import { getUserMapping } from './firestore';
+import { getUserMapping, setCoachMapping } from './firestore';
 import type { UserRole } from './types';
 
 export interface AuthUser {
@@ -51,14 +51,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             clientId: mapping.clientId,
           });
         } else {
-          // No mapping — treat as coach (first coach account)
+          // No mapping — treat as coach (first coach account) and auto-initialize in Firestore
           setCurrentUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email || '',
             role: 'coach',
           });
+          setCoachMapping(firebaseUser.uid).catch(err => {
+            console.error("Auto-initializing coach mapping failed:", err);
+          });
         }
-      } catch {
+      } catch (err) {
+        console.error("Error fetching user mapping:", err);
         setCurrentUser(null);
       } finally {
         setIsLoading(false);
