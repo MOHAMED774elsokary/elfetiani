@@ -17,6 +17,8 @@ import { notifyWorkoutAssigned, notifyNutritionUpdated } from '../../portal/noti
 import {
   createUserWithEmailAndPassword,
   signOut,
+  setPersistence,
+  inMemoryPersistence
 } from 'firebase/auth';
 import { secondaryAuth } from '../../portal/firebase';
 import type {
@@ -413,7 +415,8 @@ function AddClient() {
     setError('');
     setLoading(true);
     try {
-      // 1. Create Firebase Auth account for client using secondary auth instance
+      // 1. Isolate secondary auth persistence so it doesn't log out the primary coach account
+      await setPersistence(secondaryAuth, inMemoryPersistence);
       const cred = await createUserWithEmailAndPassword(secondaryAuth, form.email, form.password);
       // Immediately sign out from the secondary instance so we don't leave it authenticated
       await signOut(secondaryAuth);
