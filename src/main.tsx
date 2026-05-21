@@ -22,17 +22,8 @@ if ('serviceWorker' in navigator) {
       .then((reg) => console.log('FCM SW registered:', reg.scope))
       .catch((err) => console.warn('FCM SW registration failed:', err));
   });
-
-  // When the SW updates and claims control, force a full reload so clients
-  // always get the latest version automatically — no manual cache clear needed.
-  let swRefreshing = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!swRefreshing) {
-      swRefreshing = true;
-      console.log('New service worker activated. Reloading for fresh content...');
-      window.location.reload();
-    }
-  });
+  // NOTE: No controllerchange reload listener here — it conflicts with the
+  // version-based nuke script in index.html and causes infinite reload loops.
 }
 
 // ─── Simple 404 page ────────────────────────────────────────────────────────
