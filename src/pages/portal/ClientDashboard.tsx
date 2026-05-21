@@ -20,7 +20,7 @@ import { motion } from 'framer-motion';
 import {
   Scale, Flame, Dumbbell, TrendingDown, PlayCircle,
   CheckCircle2, Send, Star, Loader2, ChevronDown, ChevronUp,
-  ExternalLink, Image, Download, Settings, Bell, X, Sparkles,
+  ExternalLink, Image, Download, Settings, Bell, X,
 } from 'lucide-react';
 
 // Helper: Get Monday of the current week (ISO format)
