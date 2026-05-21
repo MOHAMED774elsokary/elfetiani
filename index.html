@@ -7,6 +7,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>الفتياني Coaching</title>
 
+  <!-- SPA Cache Self-Healing Fallback -->
+  <script>
+    window.addEventListener('error', function(e) {
+      var isAssetError = e.target && (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK');
+      if (isAssetError) {
+        var lastReload = sessionStorage.getItem('last_asset_reload');
+        var now = Date.now();
+        // Prevent infinite reload loops (cap at 1 reload per 15 seconds)
+        if (!lastReload || (now - parseInt(lastReload)) > 15000) {
+          sessionStorage.setItem('last_asset_reload', now);
+          console.warn('New version detected or asset failed to load. Self-healing by forcing reload...');
+          window.location.reload();
+        }
+      }
+    }, true);
+  </script>
+
   <!-- PWA Meta Tags -->
   <meta name="description" content="منصة تدريب ولياقة بدنية — El Fetiani Fitness Coaching" />
   <meta name="theme-color" content="#FF5500" />
