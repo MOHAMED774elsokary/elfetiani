@@ -25,15 +25,30 @@ export default async function handler(req: any, res: any) {
           credential: admin.credential.cert(JSON.parse(decodedKey)),
         });
       } else if (process.env.FIREBASE_PRIVATE_KEY) {
-        admin.initializeApp({
-          credential: admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-          }),
-        });
+        let pk = process.env.FIREBASE_PRIVATE_KEY;
+        // Strip surrounding quotes if the user pasted them by mistake
+        if (pk.startsWith('"') && pk.endsWith('"')) {
+          pk = pk.substring(1, pk.length - 1);
+        }
+        if (pk.startsWith("'") && pk.endsWith("'")) {
+          pk = pk.substring(1, pk.length - 1);
+        }
+        // Replace literal escaped newlines
+        pk = pk.replace(/\\n/g, '\n');
+        
+        try {
+          admin.initializeApp({
+            credential: admin.credential.cert({
+              projectId: process.env.FIREBASE_PROJECT_ID,
+              clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+              privateKey: pk,
+            }),
+          });
+        } catch (initErr: any) {
+          return res.status(500).json({ error: 'مشكلة في المفتاح الخاص (Private Key)', details: initErr.message });
+        }
       } else {
-        return res.status(500).json({ error: 'Firebase Admin credentials not found in environment variables.' });
+        return res.status(500).json({ error: 'متغيرات البيئة غير موجودة في Vercel.' });
       }
     }
 
