@@ -1,35 +1,6 @@
 import * as admin from 'firebase-admin';
 
-// Initialize Firebase Admin only once
-if (!admin.apps.length) {
-  try {
-    // We expect FIREBASE_SERVICE_ACCOUNT_KEY to be a base64 encoded JSON string
-    // Or FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
-    const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-    
-    if (serviceAccountKey) {
-      const decodedKey = Buffer.from(serviceAccountKey, 'base64').toString('utf-8');
-      admin.initializeApp({
-        credential: admin.credential.cert(JSON.parse(decodedKey)),
-      });
-    } else if (process.env.FIREBASE_PRIVATE_KEY) {
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          // Replace literal escaped newlines with actual newlines
-          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-        }),
-      });
-    } else {
-      console.warn('Firebase Admin credentials not found in environment variables.');
-    }
-  } catch (error) {
-    console.error('Error initializing Firebase Admin:', error);
-  }
-}
-
-export default async function handler(req, res) {
+export default async function handler(req: any, res: any) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -45,8 +16,29 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Initialize Firebase Admin only once
     if (!admin.apps.length) {
-      return res.status(500).json({ error: 'Firebase Admin not configured' });
+      const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+      if (serviceAccountKey) {
+        const decodedKey = Buffer.from(serviceAccountKey, 'base64').toString('utf-8');
+        admin.initializeApp({
+          credential: admin.credential.cert(JSON.parse(decodedKey)),
+        });
+      } else if (process.env.FIREBASE_PRIVATE_KEY) {
+        admin.initializeApp({
+          credential: admin.credential.cert({
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+            privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+          }),
+        });
+      } else {
+        return res.status(500).json({ error: 'Firebase Admin credentials not found in environment variables.' });
+      }
+    }
+
+    if (!admin.apps.length) {
+      return res.status(500).json({ error: 'Firebase Admin failed to configure' });
     }
 
     const { userId, type, title, body, data, notificationId } = req.body;
