@@ -148,3 +148,37 @@ export async function getUidByClientId(clientId: string): Promise<string | null>
   // Return the document ID, which is the Firebase Auth UID
   return snap.docs[0].id;
 }
+
+// ─── Workout Logs ──────────────────────────────────────────────────────────
+
+export async function saveWorkoutLog(log: import('./types').WorkoutLog): Promise<void> {
+  await setDoc(doc(db, 'workoutLogs', log.id), { ...log, updatedAt: serverTimestamp() });
+}
+
+export async function getWorkoutLogs(clientId: string): Promise<import('./types').WorkoutLog[]> {
+  const snap = await getDocs(query(collection(db, 'workoutLogs'), where('clientId', '==', clientId)));
+  return snap.docs.map((d) => d.data() as import('./types').WorkoutLog);
+}
+
+// ─── Coach check-in replies ────────────────────────────────────────────────
+
+export async function addCoachReplyToCheckIn(checkInId: string, reply: string): Promise<void> {
+  const checkInRef = doc(db, 'checkIns', checkInId);
+  await setDoc(checkInRef, { 
+    coachReply: reply, 
+    coachReviewed: true, 
+    reviewedAt: new Date().toISOString() 
+  }, { merge: true });
+}
+
+// ─── Client Profile Updates ────────────────────────────────────────────────
+
+export async function updateClientProfile(clientId: string, updates: Partial<Client>): Promise<void> {
+  const clientRef = doc(db, 'clients', clientId);
+  await setDoc(clientRef, updates, { merge: true });
+}
+
+export async function updateClientPhotos(clientId: string, photos: string[]): Promise<void> {
+  const clientRef = doc(db, 'clients', clientId);
+  await setDoc(clientRef, { progressPhotos: photos }, { merge: true });
+}

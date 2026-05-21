@@ -213,3 +213,33 @@ video {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* ─── PDF Export (Print Styles) ──────────────────────────────────────────── */
+@media print {
+  /* Hide UI elements not needed in the PDF */
+  nav, header, footer, button, .hide-scrollbar, .bg-noise, iframe[src*="chat"] {
+    display: none !important;
+  }
+  
+  body, #root, .glass-card, div {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    border-color: #ddd !important;
+  }
+  
+  /* Make sure everything prints within page bounds */
+  * {
+    overflow: visible !important;
+    page-break-inside: avoid;
+  }
+  
+  /* Convert primary brand color to something printable or keep it as an accent */
+  .text-\[\#FF5500\] {
+    color: #FF5500 !important;
+  }
+  .bg-\[\#FF5500\] {
+    background-color: #FF5500 !important;
+    color: white !important;
+  }
+}

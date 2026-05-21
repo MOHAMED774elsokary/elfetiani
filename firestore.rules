@@ -39,6 +39,11 @@ service cloud.firestore {
       allow write: if request.auth != null && isCoach();
     }
 
+    // ─── Workout Logs ───────────────────────────────────────────────────────
+    match /workoutLogs/{logId} {
+      allow read, write: if request.auth != null && (isCoach() || resource.data.clientId == clientId() || request.resource.data.clientId == clientId());
+    }
+
     // ─── Check-ins ──────────────────────────────────────────────────────────
     // FIXED: Replaced ambiguous `write` with explicit `update, delete` for coach.
     // Clients can only CREATE their own check-ins (not update/delete).

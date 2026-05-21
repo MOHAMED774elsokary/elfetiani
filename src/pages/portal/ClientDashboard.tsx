@@ -9,14 +9,26 @@ import {
   getNutritionPlan,
   getCheckIns,
   saveCheckIn,
+  getWorkoutLogs,
+  saveWorkoutLog,
+  updateClientPhotos,
+  updateClientProfile,
 } from '../../portal/firestore';
-import type { Client, WorkoutPlan, NutritionPlan, CheckIn } from '../../portal/types';
+import type { Client, WorkoutPlan, NutritionPlan, CheckIn, WorkoutLog } from '../../portal/types';
 import { motion } from 'framer-motion';
 import {
   Scale, Flame, Dumbbell, TrendingDown, PlayCircle,
   CheckCircle2, Send, Star, Loader2, ChevronDown, ChevronUp,
-  ExternalLink, Image,
+  ExternalLink, Image, Download, Settings,
 } from 'lucide-react';
+
+// Helper: Get Monday of the current week (ISO format)
+function getStartOfWeek() {
+  const d = new Date();
+  const day = d.getDay() || 7; 
+  if (day !== 1) d.setHours(-24 * (day - 1));
+  return d.toISOString().slice(0, 10);
+}
 
 // ─── Stat Card ──────────────────────────────────────────────────────────────
 function StatCard({ icon: Icon, label, value, sub, color = '#FF5500' }: {
@@ -75,6 +87,8 @@ function WeightChart({ data }: { data: { date: string; weight: number }[] }) {
 // ─── Overview ───────────────────────────────────────────────────────────────
 function OverviewTab({ client, nutritionPlan }: { client: Client; nutritionPlan: NutritionPlan | undefined }) {
   const [weightData, setWeightData] = useState<{ date: string; weight: number }[]>([]);
+  const [workoutStreak, setWorkoutStreak] = useState(0);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   useEffect(() => {
     getCheckIns(client.id).then((cis) => {
@@ -83,7 +97,38 @@ function OverviewTab({ client, nutritionPlan }: { client: Client; nutritionPlan:
         .sort((a, b) => a.date.localeCompare(b.date));
       setWeightData(sorted.map((c) => ({ date: c.date, weight: c.weight })));
     });
+    
+    // Calculate streak
+    getWorkoutLogs(client.id).then((logs) => {
+      const weekOf = getStartOfWeek();
+      const thisWeekLogs = logs.filter(l => l.weekOf === weekOf);
+      const completedDays = thisWeekLogs.filter(l => Object.values(l.exercises).some(ex => ex.completed)).length;
+      setWorkoutStreak(completedDays);
+    });
   }, [client.id]);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    if ((client.progressPhotos || []).length >= 5) {
+      alert('الحد الأقصى 5 صور');
+      return;
+    }
+    const file = files[0];
+    if (file.size > 300 * 1024) {
+      alert('حجم الصورة يجب أن يكون أقل من 300 كيلوبايت.');
+      return;
+    }
+    setUploadingPhoto(true);
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const base64 = ev.target?.result as string;
+      const newPhotos = [...(client.progressPhotos || []), base64];
+      await updateClientPhotos(client.id, newPhotos);
+      window.location.reload(); // Refresh to show new photo
+    };
+    reader.readAsDataURL(file);
+  };
 
   const latest = weightData.at(-1);
   const first = weightData[0];
@@ -112,7 +157,7 @@ function OverviewTab({ client, nutritionPlan }: { client: Client; nutritionPlan:
         <StatCard icon={Scale} label="الوزن الحالي" value={latest ? `${latest.weight} kg` : '-'} sub="آخر قياس" />
         <StatCard icon={TrendingDown} label="الخسارة الكلية" value={`${lost} kg`} sub="منذ البداية" color="#22c55e" />
         <StatCard icon={Flame} label="السعرات اليومية" value={nutritionPlan ? `${nutritionPlan.dailyCalories}` : '-'} sub="كيلوكالوري" color="#f97316" />
-        <StatCard icon={Dumbbell} label="نسبة الدهون" value={client.bodyStats?.at(-1)?.bodyFat ? `${client.bodyStats.at(-1)!.bodyFat}%` : '-'} sub="آخر قياس" color="#8b5cf6" />
+        <StatCard icon={CheckCircle2} label="تمارين الأسبوع" value={`${workoutStreak} أيام`} sub="أُنجزت" color="#8b5cf6" />
       </div>
       <div className="bg-[#0e0e0e] border border-white/5 rounded-2xl p-6">
         <h3 className="font-bold mb-4">مسار الوزن</h3>
@@ -126,12 +171,19 @@ function OverviewTab({ client, nutritionPlan }: { client: Client; nutritionPlan:
       )}
 
       {/* Progress Photos */}
-      {(client.progressPhotos || []).length > 0 && (
-        <div className="bg-[#0e0e0e] border border-white/5 rounded-2xl p-5">
-          <div className="flex items-center gap-2 mb-4">
+      <div className="bg-[#0e0e0e] border border-white/5 rounded-2xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
             <Image size={16} className="text-[#FF5500]" />
-            <h3 className="font-bold text-sm">صور التقدم</h3>
+            <h3 className="font-bold text-sm">صور التقدم ({(client.progressPhotos || []).length}/5)</h3>
           </div>
+          <label className={`bg-[#FF5500]/10 text-[#FF5500] hover:bg-[#FF5500]/20 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition ${uploadingPhoto ? 'opacity-50 pointer-events-none' : ''}`}>
+            {uploadingPhoto ? 'جاري الرفع...' : 'رفع صورة +'}
+            <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploadingPhoto} />
+          </label>
+        </div>
+        
+        {(client.progressPhotos || []).length > 0 ? (
           <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
             {(client.progressPhotos || []).map((src, idx) => (
               <img
@@ -142,17 +194,58 @@ function OverviewTab({ client, nutritionPlan }: { client: Client; nutritionPlan:
               />
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-white/30 text-xs text-center py-4">لم تقم برفع صور للتقدم بعد.</p>
+        )}
+      </div>
     </motion.div>
   );
 }
 
-function ClientDayCard({ day }: { day: WorkoutPlan['days'][0] }) {
+function ClientDayCard({ day, clientId, weekOf, initialLog }: { day: WorkoutPlan['days'][0], clientId: string, weekOf: string, initialLog?: WorkoutLog }) {
   const [isOpen, setIsOpen] = useState(false);
   const [completed, setCompleted] = useState<Record<string, boolean>>({});
   // per-set logging: { [exId]: { [setIdx]: { weight: string, reps: string } } }
   const [setLogs, setSetLogs] = useState<Record<string, { weight: string; reps: string }[]>>({});
+  const [isReady, setIsReady] = useState(false);
+
+  // Initialize state from firestore log once
+  useEffect(() => {
+    if (initialLog) {
+      const comp: Record<string, boolean> = {};
+      const sl: Record<string, { weight: string; reps: string }[]> = {};
+      Object.keys(initialLog.exercises).forEach(exId => {
+        comp[exId] = initialLog.exercises[exId].completed;
+        sl[exId] = initialLog.exercises[exId].sets;
+      });
+      setCompleted(comp);
+      setSetLogs(sl);
+    }
+    setIsReady(true);
+  }, [initialLog]);
+
+  // Debounced save
+  useEffect(() => {
+    if (!isReady) return;
+    const t = setTimeout(() => {
+      const logData: WorkoutLog = {
+        id: `${clientId}_${day.id}_${weekOf}`,
+        clientId,
+        dayId: day.id,
+        weekOf,
+        savedAt: new Date().toISOString(),
+        exercises: {}
+      };
+      day.exercises.forEach(ex => {
+        logData.exercises[ex.id] = {
+          completed: !!completed[ex.id],
+          sets: setLogs[ex.id] || Array(ex.sets).fill({ weight: '', reps: '' })
+        };
+      });
+      saveWorkoutLog(logData).catch(err => console.error('Failed to save log', err));
+    }, 1500); // Wait 1.5s after last change before saving
+    return () => clearTimeout(t);
+  }, [completed, setLogs, isReady, clientId, day, weekOf]);
 
   const toggleComplete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -296,13 +389,27 @@ function ClientDayCard({ day }: { day: WorkoutPlan['days'][0] }) {
 }
 
 // ─── Workout Tab ─────────────────────────────────────────────────────────────
-function WorkoutTab({ plan }: { plan: WorkoutPlan | undefined }) {
+function WorkoutTab({ plan, clientId }: { plan: WorkoutPlan | undefined, clientId: string }) {
+  const [logs, setLogs] = useState<WorkoutLog[]>([]);
+  const weekOf = getStartOfWeek();
+
+  useEffect(() => {
+    getWorkoutLogs(clientId).then(allLogs => {
+      setLogs(allLogs.filter(l => l.weekOf === weekOf));
+    });
+  }, [clientId, weekOf]);
+
   if (!plan) return <div className="text-center text-white/30 py-16">لم يتم تعيين برنامج تمارين بعد.</div>;
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="font-bold text-lg">{plan.planName}</h2>
-        <span className="text-xs text-white/30">آخر تحديث: {plan.updatedAt.slice(0, 10)}</span>
+        <div>
+          <h2 className="font-bold text-lg">{plan.planName}</h2>
+          <span className="text-xs text-white/30">أسبوع: {weekOf}</span>
+        </div>
+        <button onClick={() => window.print()} className="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2">
+          <Download size={14} /> PDF
+        </button>
       </div>
       {plan.coachNotes && <div className="bg-[#FF5500]/8 border border-[#FF5500]/15 rounded-xl p-4 text-sm text-[#FF5500]/90">{plan.coachNotes}</div>}
 
@@ -321,14 +428,19 @@ function WorkoutTab({ plan }: { plan: WorkoutPlan | undefined }) {
 
       <div className="space-y-4">
         {plan.days.map((day) => (
-          <ClientDayCard key={day.id} day={day} />
+          <ClientDayCard 
+            key={day.id} 
+            day={day} 
+            clientId={clientId} 
+            weekOf={weekOf} 
+            initialLog={logs.find(l => l.dayId === day.id)} 
+          />
         ))}
       </div>
     </motion.div>
   );
 }
 
-// ─── Nutrition Tab ───────────────────────────────────────────────────────────
 function NutritionTab({ plan }: { plan: NutritionPlan | undefined }) {
   if (!plan) return <div className="text-center text-white/30 py-16">لم يتم تعيين خطة تغذية بعد.</div>;
   const macros = [
@@ -338,6 +450,12 @@ function NutritionTab({ plan }: { plan: NutritionPlan | undefined }) {
   ];
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="font-bold text-lg">الخطة الغذائية</h2>
+        <button onClick={() => window.print()} className="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2">
+          <Download size={14} /> PDF
+        </button>
+      </div>
       <div className="bg-gradient-to-br from-[#FF5500]/15 to-transparent border border-[#FF5500]/20 rounded-2xl p-6 text-center">
         <div className="text-5xl font-black text-[#FF5500]">{plan.dailyCalories}</div>
         <div className="text-white/40 text-sm mt-1">كيلوكالوري يومياً</div>
@@ -494,18 +612,71 @@ function CheckInTab({ clientId }: { clientId: string }) {
           <h3 className="font-bold mb-4 text-sm">سجل التقارير</h3>
           <div className="space-y-2">
             {history.slice(0, 5).map((ci) => (
-              <div key={ci.id} className="border border-white/5 rounded-xl px-4 py-3 flex items-center gap-3">
-                <div className="text-xs text-white/30 w-24">{ci.date}</div>
-                <div className="text-sm font-semibold">{ci.weight} kg</div>
-                <div className="flex gap-0.5">
-                  {[1,2,3,4,5].map(n => <Star key={n} size={11} className={ci.energyLevel >= n ? 'fill-yellow-400 text-yellow-400' : 'text-white/15'} />)}
+              <div key={ci.id} className="border border-white/5 bg-white/2 rounded-xl p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="text-xs font-bold text-[#FF5500] bg-[#FF5500]/10 px-2 py-1 rounded">{ci.date}</div>
+                  <div className="text-sm font-semibold">{ci.weight} kg</div>
+                  <div className="flex gap-0.5">
+                    {[1,2,3,4,5].map(n => <Star key={n} size={11} className={ci.energyLevel >= n ? 'fill-yellow-400 text-yellow-400' : 'text-white/15'} />)}
+                  </div>
                 </div>
-                <div className="text-xs text-white/40 flex-1 truncate">{ci.notes}</div>
+                {ci.notes && <div className="text-sm text-white/70 leading-relaxed border-t border-white/5 pt-2">{ci.notes}</div>}
+                {ci.coachReply && (
+                  <div className="bg-[#FF5500]/10 border border-[#FF5500]/20 rounded-lg p-3 mt-2">
+                    <div className="text-[#FF5500] text-xs font-bold mb-1 flex items-center gap-1">
+                      <Star size={12} className="fill-[#FF5500]" /> رد المدرب
+                    </div>
+                    <div className="text-white/90 text-sm leading-relaxed">{ci.coachReply}</div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </div>
       )}
+    </motion.div>
+  );
+}
+
+// ─── Settings Tab ────────────────────────────────────────────────────────────
+function SettingsTab({ client }: { client: Client }) {
+  const [name, setName] = useState(client.name);
+  const [phone, setPhone] = useState(client.phone || '');
+  const [goal, setGoal] = useState(client.goal || '');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    await updateClientProfile(client.id, { name, phone, goal });
+    setSaving(false);
+    alert('تم حفظ الإعدادات بنجاح');
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-md space-y-6">
+      <div className="bg-[#0e0e0e] border border-white/5 rounded-2xl p-6">
+        <h2 className="font-bold mb-6 flex items-center gap-2">
+          <Settings size={20} className="text-[#FF5500]" /> إعدادات الحساب
+        </h2>
+        <form onSubmit={handleSave} className="space-y-4">
+          <div>
+            <label className="block text-xs text-white/40 mb-1">الاسم</label>
+            <input type="text" value={name} onChange={e => setName(e.target.value)} required className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-[#FF5500]/50 transition" />
+          </div>
+          <div>
+            <label className="block text-xs text-white/40 mb-1">رقم الهاتف</label>
+            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-[#FF5500]/50 transition text-left" dir="ltr" />
+          </div>
+          <div>
+            <label className="block text-xs text-white/40 mb-1">هدفك</label>
+            <textarea value={goal} onChange={e => setGoal(e.target.value)} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-[#FF5500]/50 transition resize-none" />
+          </div>
+          <button type="submit" disabled={saving} className="w-full bg-[#FF5500] hover:bg-[#FF6620] disabled:opacity-60 text-white font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2">
+            {saving ? <Loader2 size={18} className="animate-spin" /> : 'حفظ التعديلات'}
+          </button>
+        </form>
+      </div>
     </motion.div>
   );
 }
@@ -543,6 +714,7 @@ export default function ClientDashboard() {
     { to: '/portal/dashboard/workout', label: 'التمارين' },
     { to: '/portal/dashboard/nutrition', label: 'التغذية' },
     { to: '/portal/dashboard/checkin', label: 'تسجيل أسبوعي' },
+    { to: '/portal/dashboard/settings', label: 'الإعدادات' },
     { to: '/portal/dashboard/notifications', label: 'الإشعارات' },
   ];
 
@@ -560,9 +732,10 @@ export default function ClientDashboard() {
       </div>
       <Routes>
         <Route index element={<OverviewTab client={client} nutritionPlan={nutritionPlan} />} />
-        <Route path="workout" element={<WorkoutTab plan={workoutPlan} />} />
+        <Route path="workout" element={<WorkoutTab plan={workoutPlan} clientId={client.id} />} />
         <Route path="nutrition" element={<NutritionTab plan={nutritionPlan} />} />
         <Route path="checkin" element={<CheckInTab clientId={client.id} />} />
+        <Route path="settings" element={<SettingsTab client={client} />} />
         <Route path="notifications" element={<NotificationSettings />} />
       </Routes>
     </PortalLayout>

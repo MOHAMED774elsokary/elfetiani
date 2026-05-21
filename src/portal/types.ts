@@ -91,4 +91,29 @@ export interface CheckIn {
   energyLevel: 1 | 2 | 3 | 4 | 5;
   sleepHours: number;
   notes?: string;
+  // Coach review
+  coachReply?: string;
+  coachReviewed?: boolean;
+  reviewedAt?: string;
+}
+
+// ─── Workout Log ────────────────────────────────────────────────────────────
+
+export interface SetLog {
+  weight: string;
+  reps: string;
+}
+
+export interface ExerciseLog {
+  completed: boolean;
+  sets: SetLog[];
+}
+
+export interface WorkoutLog {
+  id: string;           // `${clientId}_${dayId}_${weekOf}`
+  clientId: string;
+  dayId: string;
+  weekOf: string;       // ISO date of Monday of the logged week
+  exercises: Record<string, ExerciseLog>;  // keyed by exercise id
+  savedAt: string;
 }

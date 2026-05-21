@@ -13,6 +13,8 @@ import {
   saveNutritionPlan,
   setUserMapping,
   getUidByClientId,
+  getCheckIns,
+  addCoachReplyToCheckIn,
 } from '../../portal/firestore';
 import { notifyWorkoutAssigned, notifyNutritionUpdated } from '../../portal/notifications';
 import {
@@ -30,6 +32,7 @@ import type {
   NutritionPlan,
   Meal,
   BodyStat,
+  CheckIn,
 } from '../../portal/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -52,6 +55,8 @@ import {
   CheckCircle2,
   Link,
   Image,
+  Star,
+  Send,
 } from 'lucide-react';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -582,7 +587,7 @@ function AddClient() {
 }
 
 // ─── Client Detail ──────────────────────────────────────────────────────────
-type DetailTab = 'stats' | 'workout' | 'nutrition';
+type DetailTab = 'stats' | 'workout' | 'nutrition' | 'checkins';
 
 function ClientDetail() {
   const { clientId } = useParams<{ clientId: string }>();
@@ -623,8 +628,13 @@ function ClientDetail() {
         )}
       </div>
 
-      <div className="flex gap-1 bg-white/3 p-1 rounded-xl w-fit">
-        {([['stats', Scale, 'الإحصاءات'], ['workout', Dumbbell, 'التمارين'], ['nutrition', UtensilsCrossed, 'التغذية']] as [DetailTab, React.ElementType, string][]).map(([tab, Icon, label]) => (
+      <div className="flex gap-1 bg-white/3 p-1 rounded-xl w-fit flex-wrap">
+        {([
+          ['stats', Scale, 'الإحصاءات'], 
+          ['workout', Dumbbell, 'التمارين'], 
+          ['nutrition', UtensilsCrossed, 'التغذية'],
+          ['checkins', CheckCircle2, 'التقارير']
+        ] as [DetailTab, React.ElementType, string][]).map(([tab, Icon, label]) => (
           <button key={tab} onClick={() => setActiveTab(tab)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === tab ? 'bg-[#FF5500] text-white' : 'text-white/50 hover:text-white'}`}>
             <Icon size={14} />{label}
@@ -636,7 +646,95 @@ function ClientDetail() {
         {activeTab === 'stats' && <StatsEditor key="stats" client={client} saving={saving} setSaving={setSaving} onSaved={setClient} />}
         {activeTab === 'workout' && <WorkoutEditor key="workout" clientId={client.id} clientName={client.name} saving={saving} setSaving={setSaving} />}
         {activeTab === 'nutrition' && <NutritionEditor key="nutrition" clientId={client.id} clientName={client.name} saving={saving} setSaving={setSaving} />}
+        {activeTab === 'checkins' && <CheckInsViewer key="checkins" clientId={client.id} />}
       </AnimatePresence>
+    </motion.div>
+  );
+}
+
+// ─── Check-ins Viewer ───────────────────────────────────────────────────────
+function CheckInsViewer({ clientId }: { clientId: string }) {
+  const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [replyText, setReplyText] = useState<Record<string, string>>({});
+  const [sendingReply, setSendingReply] = useState<string | null>(null);
+
+  useEffect(() => {
+    getCheckIns(clientId).then(data => {
+      setCheckIns(data.sort((a, b) => b.date.localeCompare(a.date)));
+      setLoading(false);
+    });
+  }, [clientId]);
+
+  const handleReply = async (checkInId: string) => {
+    const txt = replyText[checkInId];
+    if (!txt) return;
+    setSendingReply(checkInId);
+    await addCoachReplyToCheckIn(checkInId, txt);
+    setCheckIns(prev => prev.map(c => c.id === checkInId ? { ...c, coachReply: txt, coachReviewed: true } : c));
+    setSendingReply(null);
+  };
+
+  if (loading) return <div className="flex justify-center py-16"><Loader2 className="animate-spin text-[#FF5500]" /></div>;
+  if (checkIns.length === 0) return <div className="text-center py-16 text-white/40">لم يرسل العميل أي تقارير بعد.</div>;
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+      {checkIns.map(ci => (
+        <div key={ci.id} className="bg-[#0e0e0e] border border-white/5 rounded-2xl p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="bg-[#FF5500]/10 text-[#FF5500] font-bold text-xs px-2.5 py-1 rounded-lg">{ci.date}</span>
+            <div className="flex items-center gap-1.5 text-xs text-white/50">
+              طاقة: {[1,2,3,4,5].map(n => <Star key={n} size={10} className={ci.energyLevel >= n ? 'fill-yellow-400 text-yellow-400' : 'text-white/10'} />)}
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="bg-white/5 rounded-xl p-3">
+              <span className="text-white/40 text-xs block mb-1">الوزن</span>
+              <span className="font-bold">{ci.weight} kg</span>
+            </div>
+            <div className="bg-white/5 rounded-xl p-3">
+              <span className="text-white/40 text-xs block mb-1">ساعات النوم</span>
+              <span className="font-bold">{ci.sleepHours} ساعات</span>
+            </div>
+          </div>
+          
+          {ci.notes && (
+            <div className="bg-white/2 border border-white/5 rounded-xl p-4 text-sm text-white/80 leading-relaxed">
+              <span className="text-white/30 text-xs font-bold uppercase block mb-1">ملاحظات العميل</span>
+              {ci.notes}
+            </div>
+          )}
+
+          <div className="border-t border-white/5 pt-4 mt-2">
+            {ci.coachReviewed ? (
+              <div className="bg-[#FF5500]/10 border border-[#FF5500]/20 rounded-xl p-4">
+                <span className="text-[#FF5500] text-xs font-bold uppercase block mb-1">ردك السابق</span>
+                <p className="text-white/90 text-sm leading-relaxed">{ci.coachReply}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <textarea 
+                  value={replyText[ci.id] || ''}
+                  onChange={e => setReplyText({ ...replyText, [ci.id]: e.target.value })}
+                  placeholder="اكتب ردك على التقرير..."
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-white/30 outline-none focus:border-[#FF5500]/50 resize-none"
+                  rows={2}
+                />
+                <button 
+                  onClick={() => handleReply(ci.id)}
+                  disabled={!replyText[ci.id] || sendingReply === ci.id}
+                  className="bg-[#FF5500] hover:bg-[#FF6620] disabled:opacity-50 text-white font-bold text-xs px-4 py-2 rounded-lg transition flex items-center gap-2"
+                >
+                  {sendingReply === ci.id ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                  إرسال الرد
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
     </motion.div>
   );
 }
