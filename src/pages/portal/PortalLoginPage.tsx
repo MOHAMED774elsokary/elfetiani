@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, type Location } from 'react-router-dom';
 import { useAuth } from '../../portal/AuthContext';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, LogIn, Home, Loader2 } from 'lucide-react';
@@ -7,6 +7,7 @@ import { Eye, EyeOff, LogIn, Home, Loader2 } from 'lucide-react';
 export default function PortalLoginPage() {
   const { login, currentUser, isLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
@@ -14,15 +15,17 @@ export default function PortalLoginPage() {
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
-  // Redirect if already logged in — inside useEffect to avoid navigate-during-render crash
+  // Redirect if already logged in — inside useEffect to avoid navigate-during-render crash.
+  // Reads location.state.from to redirect back to the originally requested page.
   useEffect(() => {
     if (currentUser) {
+      const from = (location.state as { from?: Location })?.from?.pathname;
       navigate(
-        currentUser.role === 'coach' ? '/portal/admin' : '/portal/dashboard',
+        from || (currentUser.role === 'coach' ? '/portal/admin' : '/portal/dashboard'),
         { replace: true }
       );
     }
-  }, [currentUser, navigate]);
+  }, [currentUser, navigate, location.state]);
 
   // While Firebase is resolving auth state, show a spinner
   if (isLoading) {

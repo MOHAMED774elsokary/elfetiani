@@ -12,6 +12,7 @@ import {
   getNutritionPlan,
   saveNutritionPlan,
   setUserMapping,
+  getUidByClientId,
 } from '../../portal/firestore';
 import { notifyWorkoutAssigned, notifyNutritionUpdated } from '../../portal/notifications';
 import {
@@ -680,6 +681,18 @@ function StatsEditor({ client, saving, setSaving, onSaved }: {
   async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
+
+    // FIXED: Validate file size before base64 conversion.
+    // Firestore documents have a 1MB limit. Each base64 image adds ~33% overhead.
+    // We cap each file at 300KB to stay safely under the limit with 5 photos.
+    const MAX_FILE_SIZE = 300 * 1024; // 300KB
+    const oversized = files.filter(f => f.size > MAX_FILE_SIZE);
+    if (oversized.length > 0) {
+      alert(`بعض الصور أكبر من الحد المسموح (300KB).\nالصور الكبيرة: ${oversized.map(f => f.name).join(', ')}`);
+      e.target.value = '';
+      return;
+    }
+
     setPhotoSaving(true);
     const existing = client.progressPhotos || [];
     const remaining = 5 - existing.length;
@@ -700,6 +713,7 @@ function StatsEditor({ client, saving, setSaving, onSaved }: {
     setPhotoSaving(false);
     e.target.value = '';
   }
+
 
   async function deletePhoto(idx: number) {
     const photos = (client.progressPhotos || []).filter((_, i) => i !== idx);
@@ -961,7 +975,15 @@ function WorkoutEditor({ clientId, clientName, saving, setSaving }: { clientId: 
     setSaving(true);
     const updated = { ...plan, updatedAt: new Date().toISOString() };
     await saveWorkoutPlan(updated);
-    await notifyWorkoutAssigned(clientId, clientName);
+    // FIXED: Look up the Firebase Auth UID from the clientId before notifying.
+    // Previously passed clientId directly (Firestore document ID), but
+    // notifications need the Firebase Auth UID as the userId recipient.
+    const clientUid = await getUidByClientId(clientId);
+    if (clientUid) {
+      await notifyWorkoutAssigned(clientUid, clientName);
+    } else {
+      console.warn('Could not find Firebase UID for clientId:', clientId, '— notification not sent');
+    }
     setPlan(updated);
     setSaving(false); setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -1052,7 +1074,13 @@ function NutritionEditor({ clientId, clientName, saving, setSaving }: { clientId
     setSaving(true);
     const updated = { ...plan, updatedAt: new Date().toISOString() };
     await saveNutritionPlan(updated);
-    await notifyNutritionUpdated(clientId, clientName);
+    // FIXED: Look up the Firebase Auth UID from the clientId before notifying.
+    const clientUid = await getUidByClientId(clientId);
+    if (clientUid) {
+      await notifyNutritionUpdated(clientUid, clientName);
+    } else {
+      console.warn('Could not find Firebase UID for clientId:', clientId, '— notification not sent');
+    }
     setPlan(updated);
     setSaving(false); setSaved(true);
     setTimeout(() => setSaved(false), 2000);

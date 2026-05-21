@@ -24,6 +24,23 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// ─── Simple 404 page ────────────────────────────────────────────────────────
+function NotFoundPage() {
+  return (
+    <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center gap-6 text-white" dir="rtl">
+      <div className="text-8xl font-black text-[#FF5500]">404</div>
+      <h1 className="text-2xl font-bold">الصفحة غير موجودة</h1>
+      <p className="text-white/40 text-sm">الرابط الذي تبحث عنه غير موجود أو تم حذفه.</p>
+      <a
+        href="/#/"
+        className="bg-[#FF5500] hover:bg-[#FF6620] text-white font-bold px-8 py-3 rounded-xl transition"
+      >
+        العودة للرئيسية
+      </a>
+    </div>
+  );
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HashRouter>
@@ -36,7 +53,15 @@ createRoot(document.getElementById('root')!).render(
 
             {/* Portal */}
             <Route path="/portal/login" element={<PortalLoginPage />} />
+
+            {/*
+              /portal/setup — Coach account creation.
+              SECURITY: The route itself is kept accessible (coach may need it on first run),
+              but the CoachSetupPage enforces the email restriction via VITE_COACH_EMAIL.
+              Redirect to login if already authenticated.
+            */}
             <Route path="/portal/setup" element={<CoachSetupPage />} />
+
             <Route
               path="/portal/dashboard/*"
               element={
@@ -53,6 +78,9 @@ createRoot(document.getElementById('root')!).render(
                 </ProtectedRoute>
               }
             />
+
+            {/* 404 catch-all */}
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
           <PWAInstallPrompt />
         </NotificationProvider>

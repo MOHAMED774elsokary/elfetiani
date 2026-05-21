@@ -51,8 +51,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             clientId: mapping.clientId,
           });
         } else {
-          // No mapping — only treat the specific coach email as a coach
-          const isCoachEmail = firebaseUser.email?.toLowerCase() === 'elfetyaniabdo@gmail.com';
+          // No mapping — only treat the specific coach email as a coach.
+          // Coach email is read from env to avoid hardcoding it in the bundle.
+          const COACH_EMAIL = import.meta.env.VITE_COACH_EMAIL?.toLowerCase();
+          const isCoachEmail = COACH_EMAIL
+            ? firebaseUser.email?.toLowerCase() === COACH_EMAIL
+            : false;
           const assignedRole = isCoachEmail ? 'coach' : 'client';
           
           setCurrentUser({

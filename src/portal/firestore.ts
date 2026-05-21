@@ -21,17 +21,55 @@ export async function saveClient(client: Client): Promise<void> {
   await setDoc(doc(db, 'clients', client.id), client);
 }
 
+/**
+ * Full cascade delete of a client and ALL their associated data.
+ * FIXED: Now also deletes userMappings, fcmTokens, notifications,
+ * and notificationPreferences for the client.
+ */
 export async function deleteClientData(clientId: string): Promise<void> {
+  // 1. Find the Firebase Auth UID for this clientId (needed to clean up auth-keyed collections)
+  const firebaseUid = await getUidByClientId(clientId);
+
+  // 2. Delete core client documents in one batch
   const batch = writeBatch(db);
   batch.delete(doc(db, 'clients', clientId));
   batch.delete(doc(db, 'workoutPlans', clientId));
   batch.delete(doc(db, 'nutritionPlans', clientId));
+  if (firebaseUid) {
+    batch.delete(doc(db, 'userMappings', firebaseUid));
+    batch.delete(doc(db, 'notificationPreferences', firebaseUid));
+  }
   await batch.commit();
-  // delete check-ins
+
+  // 3. Delete check-ins (may be many — use separate batch)
   const ciSnap = await getDocs(query(collection(db, 'checkIns'), where('clientId', '==', clientId)));
-  const batch2 = writeBatch(db);
-  ciSnap.docs.forEach((d) => batch2.delete(d.ref));
-  await batch2.commit();
+  if (ciSnap.docs.length > 0) {
+    const batch2 = writeBatch(db);
+    ciSnap.docs.forEach((d) => batch2.delete(d.ref));
+    await batch2.commit();
+  }
+
+  // 4. Delete FCM tokens for this user
+  if (firebaseUid) {
+    const tokensSnap = await getDocs(
+      query(collection(db, 'fcmTokens'), where('uid', '==', firebaseUid))
+    );
+    if (tokensSnap.docs.length > 0) {
+      const batch3 = writeBatch(db);
+      tokensSnap.docs.forEach((d) => batch3.delete(d.ref));
+      await batch3.commit();
+    }
+
+    // 5. Delete notifications for this user
+    const notifsSnap = await getDocs(
+      query(collection(db, 'notifications'), where('userId', '==', firebaseUid))
+    );
+    if (notifsSnap.docs.length > 0) {
+      const batch4 = writeBatch(db);
+      notifsSnap.docs.forEach((d) => batch4.delete(d.ref));
+      await batch4.commit();
+    }
+  }
 }
 
 export async function addBodyStat(clientId: string, stat: BodyStat): Promise<void> {
@@ -79,7 +117,7 @@ export async function saveCheckIn(checkIn: CheckIn): Promise<void> {
 }
 
 // ─── Client→User mapping ───────────────────────────────────────────────────
-// We store a small mapping doc so we can look up clientId from Firebase UID
+// We store a small mapping doc so we can look up clientId from Firebase UID.
 
 export async function setUserMapping(uid: string, clientId: string): Promise<void> {
   await setDoc(doc(db, 'userMappings', uid), { clientId, role: 'client' });
@@ -92,4 +130,21 @@ export async function setCoachMapping(uid: string): Promise<void> {
 export async function getUserMapping(uid: string): Promise<{ role: 'coach' | 'client'; clientId?: string } | undefined> {
   const snap = await getDoc(doc(db, 'userMappings', uid));
   return snap.exists() ? (snap.data() as { role: 'coach' | 'client'; clientId?: string }) : undefined;
+}
+
+/**
+ * Reverse lookup: given a Firestore clientId (e.g. "client-abc123"),
+ * return the Firebase Auth UID that maps to it.
+ * This is needed to send notifications to the correct user.
+ *
+ * SECURITY NOTE: This query runs as the coach (who has read access to all userMappings).
+ * It must NEVER be called from a client-side context where the user could be a regular client.
+ */
+export async function getUidByClientId(clientId: string): Promise<string | null> {
+  const snap = await getDocs(
+    query(collection(db, 'userMappings'), where('clientId', '==', clientId))
+  );
+  if (snap.empty) return null;
+  // Return the document ID, which is the Firebase Auth UID
+  return snap.docs[0].id;
 }

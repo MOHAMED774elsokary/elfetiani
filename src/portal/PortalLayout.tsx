@@ -37,8 +37,14 @@ export default function PortalLayout({ children, title }: Props) {
   const isCoach = currentUser?.role === 'coach';
 
   function handleLogout() {
-    logout();
-    navigate('/');
+    logout().then(() => {
+      // Replace current history entry so "back" after logout doesn't
+      // navigate to a protected URL (the ProtectedRoute would redirect,
+      // but this prevents any flash of the spinner on protected paths).
+      navigate('/', { replace: true });
+      // Additional defense: lock popstate so fast back-press won't bypass
+      window.history.pushState(null, '', window.location.href);
+    });
   }
 
   const clientLinks = [

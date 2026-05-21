@@ -2,8 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Coach can read/write everything
-    // Client can only read/write their own data
+    // ─── Helper Functions ───────────────────────────────────────────────────
 
     function isCoach() {
       return get(/databases/$(database)/documents/userMappings/$(request.auth.uid)).data.role == 'coach';
@@ -13,62 +12,66 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/userMappings/$(request.auth.uid)).data.clientId;
     }
 
-    // User mappings — authenticated users can read their own, coach can read all
+    // ─── User Mappings ──────────────────────────────────────────────────────
+    // FIXED: Clients can NO LONGER write their own mapping.
+    // Previously: allow write: if request.auth != null && (isCoach() || request.auth.uid == uid)
+    // This allowed a client to escalate their own role to 'coach' or change their clientId.
     match /userMappings/{uid} {
       allow read: if request.auth != null && (request.auth.uid == uid || isCoach());
-      allow write: if request.auth != null && (isCoach() || request.auth.uid == uid);
-    }
-
-    // Clients
-    match /clients/{clientId} {
-      allow read: if request.auth != null && (isCoach() || clientId() == clientId);
       allow write: if request.auth != null && isCoach();
     }
 
-    // Workout plans
-    match /workoutPlans/{clientId} {
-      allow read: if request.auth != null && (isCoach() || clientId() == clientId);
+    // ─── Clients ────────────────────────────────────────────────────────────
+    match /clients/{docClientId} {
+      allow read: if request.auth != null && (isCoach() || clientId() == docClientId);
       allow write: if request.auth != null && isCoach();
     }
 
-    // Nutrition plans
-    match /nutritionPlans/{clientId} {
-      allow read: if request.auth != null && (isCoach() || clientId() == clientId);
+    // ─── Workout Plans ──────────────────────────────────────────────────────
+    match /workoutPlans/{docClientId} {
+      allow read: if request.auth != null && (isCoach() || clientId() == docClientId);
       allow write: if request.auth != null && isCoach();
     }
 
-    // Check-ins — clients can write their own, coach reads all
+    // ─── Nutrition Plans ────────────────────────────────────────────────────
+    match /nutritionPlans/{docClientId} {
+      allow read: if request.auth != null && (isCoach() || clientId() == docClientId);
+      allow write: if request.auth != null && isCoach();
+    }
+
+    // ─── Check-ins ──────────────────────────────────────────────────────────
+    // FIXED: Replaced ambiguous `write` with explicit `update, delete` for coach.
+    // Clients can only CREATE their own check-ins (not update/delete).
     match /checkIns/{checkInId} {
       allow read: if request.auth != null && (isCoach() || resource.data.clientId == clientId());
       allow create: if request.auth != null && request.resource.data.clientId == clientId();
-      allow write: if request.auth != null && isCoach();
+      allow update, delete: if request.auth != null && isCoach();
     }
 
-    // ─── Notifications ──────────────────────────────────────────────────
-
-    // FCM device tokens — users can manage their own tokens
+    // ─── FCM Tokens ─────────────────────────────────────────────────────────
+    // Users manage their own tokens; coach can read all to send push notifications.
     match /fcmTokens/{tokenId} {
-      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow read: if request.auth != null && (resource.data.uid == request.auth.uid || isCoach());
       allow create, update: if request.auth != null && request.resource.data.uid == request.auth.uid;
-      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
-      // Coach can read all tokens (needed to send push notifications)
-      allow read: if request.auth != null && isCoach();
+      allow delete: if request.auth != null && (resource.data.uid == request.auth.uid || isCoach());
     }
 
-    // Notifications — users can read/update their own, coach can create for anyone
+    // ─── Notifications ───────────────────────────────────────────────────────
+    // FIXED: `allow create` was `request.auth != null` (any user → any target).
+    // Now: clients can only create notifications for themselves; coach can create for anyone.
     match /notifications/{notifId} {
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null;
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || isCoach());
+      allow update: if request.auth != null && (resource.data.userId == request.auth.uid || isCoach());
+      allow create: if request.auth != null && (
+        isCoach() ||
+        request.resource.data.userId == request.auth.uid
+      );
       allow delete: if request.auth != null && (resource.data.userId == request.auth.uid || isCoach());
-      // Coach can read all notifications
-      allow read: if request.auth != null && isCoach();
     }
 
-    // Notification preferences — users can read/write their own
+    // ─── Notification Preferences ────────────────────────────────────────────
     match /notificationPreferences/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
-      // Coach can read all preferences
       allow read: if request.auth != null && isCoach();
     }
   }

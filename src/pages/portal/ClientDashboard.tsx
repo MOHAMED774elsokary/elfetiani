@@ -236,16 +236,24 @@ function ClientDayCard({ day }: { day: WorkoutPlan['days'][0] }) {
                     </p>
                   )}
                   {ex.videoUrl && (
-                    <a 
-                      href={ex.videoUrl} 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-2xl py-4 text-sm font-black transition w-full active:scale-[0.98]"
-                    >
-                      <PlayCircle size={20} className="text-[#FF5500]" /> 
-                      شاهد الفيديو التوضيحي
-                    </a>
+                    (() => {
+                      // FIXED: Block javascript: and data: URLs to prevent XSS
+                      const safeUrl = ex.videoUrl.startsWith('http://') || ex.videoUrl.startsWith('https://')
+                        ? ex.videoUrl
+                        : '#';
+                      return (
+                        <a 
+                          href={safeUrl} 
+                          target="_blank" 
+                          rel="noreferrer noopener" 
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-2xl py-4 text-sm font-black transition w-full active:scale-[0.98]"
+                        >
+                          <PlayCircle size={20} className="text-[#FF5500]" /> 
+                          شاهد الفيديو التوضيحي
+                        </a>
+                      );
+                    })()
                   )}
                 </div>
               )}
@@ -382,14 +390,19 @@ function CheckInTab({ clientId }: { clientId: string }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    // FIXED: Validate weight is a real number before saving
+    const parsedWeight = parseFloat(weight);
+    if (!weight || isNaN(parsedWeight) || parsedWeight <= 0) {
+      return; // input[required] handles UI, but we guard against NaN explicitly
+    }
     setSubmitting(true);
     const ci: CheckIn = {
       id: `ci-${Date.now()}`,
       clientId,
       date: new Date().toISOString().slice(0, 10),
-      weight: parseFloat(weight),
+      weight: parsedWeight,
       energyLevel: energy as 1 | 2 | 3 | 4 | 5,
-      sleepHours: parseFloat(sleep),
+      sleepHours: parseFloat(sleep) || 0,
       notes,
     };
     await saveCheckIn(ci);

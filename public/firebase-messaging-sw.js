@@ -1,6 +1,12 @@
 /* eslint-disable no-undef */
 // Firebase Cloud Messaging Service Worker
 // This runs in the background and handles push notifications when the app is not in the foreground.
+//
+// SECURITY NOTE: Firebase config values below are intentionally hardcoded.
+// Service Workers run outside the Vite build pipeline and CANNOT read environment variables.
+// Firebase API keys are designed to be public — they identify the project, not authenticate access.
+// All actual security is enforced server-side via Firestore Security Rules and Firebase Auth.
+// See: https://firebase.google.com/docs/projects/api-keys
 
 importScripts('https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/11.8.1/firebase-messaging-compat.js');
