@@ -7,21 +7,56 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>الفتياني Coaching</title>
 
-  <!-- SPA Cache Self-Healing Fallback -->
+  <!-- PWA Cache Kill Switch — runs before React, clears stale SW/cache automatically -->
   <script>
-    window.addEventListener('error', function(e) {
-      var isAssetError = e.target && (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK');
-      if (isAssetError) {
-        var lastReload = sessionStorage.getItem('last_asset_reload');
-        var now = Date.now();
-        // Prevent infinite reload loops (cap at 1 reload per 15 seconds)
-        if (!lastReload || (now - parseInt(lastReload)) > 15000) {
-          sessionStorage.setItem('last_asset_reload', now);
-          console.warn('New version detected or asset failed to load. Self-healing by forcing reload...');
-          window.location.reload();
+    (function () {
+      // Increment this string on every production deploy.
+      // When a client's cached version differs, their SW + caches are wiped automatically.
+      var APP_VERSION = '20260521-v4';
+      var KEY = '_fett_app_v';
+      var stored = localStorage.getItem(KEY);
+
+      function nukeAndReload() {
+        localStorage.setItem(KEY, APP_VERSION);
+        var jobs = [];
+        if ('serviceWorker' in navigator) {
+          jobs.push(
+            navigator.serviceWorker.getRegistrations().then(function (regs) {
+              return Promise.all(regs.map(function (r) { return r.unregister(); }));
+            })
+          );
         }
+        if ('caches' in window) {
+          jobs.push(
+            caches.keys().then(function (names) {
+              return Promise.all(names.map(function (n) { return caches.delete(n); }));
+            })
+          );
+        }
+        Promise.all(jobs).then(function () { window.location.reload(true); });
       }
-    }, true);
+
+      if (!stored) {
+        // First ever visit — just store version, no reload needed
+        localStorage.setItem(KEY, APP_VERSION);
+      } else if (stored !== APP_VERSION) {
+        // Version mismatch — nuke everything and get fresh content
+        nukeAndReload();
+      }
+
+      // Also reload on asset load failure (extra safety net)
+      window.addEventListener('error', function (e) {
+        var t = e.target;
+        if (t && (t.tagName === 'SCRIPT' || t.tagName === 'LINK')) {
+          var ts = sessionStorage.getItem('_fett_err_reload');
+          var now = Date.now();
+          if (!ts || now - parseInt(ts) > 15000) {
+            sessionStorage.setItem('_fett_err_reload', String(now));
+            nukeAndReload();
+          }
+        }
+      }, true);
+    })();
   </script>
 
   <!-- PWA Meta Tags -->

@@ -14,9 +14,9 @@ export default defineConfig({
       includeAssets: ['favicon.svg', 'offline.html', 'icons/*.png'],
       workbox: {
         maximumFileSizeToCacheInBytes: 10000000, // 10MB
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
-        navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/firebase-messaging-sw\.js$/],
+        // Exclude HTML from precache — always fetch fresh from network.
+        // Safe because the app uses HashRouter (all routing is client-side).
+        globPatterns: ['**/*.{js,css,ico,png,svg,woff,woff2}'],
         // Force the new SW to take control immediately without waiting
         skipWaiting: true,
         clientsClaim: true,
