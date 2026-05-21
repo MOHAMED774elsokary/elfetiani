@@ -87,12 +87,22 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   const requestPermission = useCallback(async () => {
     if (!currentUser) return;
-    const token = await requestNotificationPermission(currentUser.uid);
-    if (token) {
-      setFcmToken(token);
-      setPermissionStatus('granted');
-    } else {
-      setPermissionStatus(Notification.permission);
+    try {
+      const token = await requestNotificationPermission(currentUser.uid);
+      if (token) {
+        setFcmToken(token);
+        setPermissionStatus('granted');
+        alert('✅ تم تفعيل الإشعارات بنجاح!');
+      } else {
+        setPermissionStatus(Notification.permission);
+        if (Notification.permission === 'denied') {
+          alert('❌ المتصفح يمنع الإشعارات. يرجى تفعيلها من إعدادات المتصفح.');
+        } else {
+          alert('⚠️ حدثت مشكلة أثناء تسجيل الجهاز (FCM Token لم يصدر). راجع الـ Console للتفاصيل.');
+        }
+      }
+    } catch (err: any) {
+      alert('❌ خطأ غير متوقع: ' + err.message);
     }
   }, [currentUser]);
 

@@ -91,9 +91,8 @@ export async function requestNotificationPermission(uid: string): Promise<string
     // Get VAPID key from env
     const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
     if (!vapidKey) {
+      alert('⚠️ المتغير VITE_FIREBASE_VAPID_KEY غير موجود في إعدادات Vercel. لا يمكن تفعيل الإشعارات.');
       console.warn('VITE_FIREBASE_VAPID_KEY is not set. FCM tokens cannot be generated.');
-      console.warn('Run: firebase console → Cloud Messaging → Web Push certificates → Generate key pair');
-      console.warn('Then add VITE_FIREBASE_VAPID_KEY=<your_key> to .env');
       return null;
     }
 
