@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate, NavLink } from 'react-router-dom';
 import { useAuth } from '../../portal/AuthContext';
 import PortalLayout from '../../portal/PortalLayout';
 import NotificationSettings from '../../portal/NotificationSettings';
+import { useNotifications } from '../../portal/NotificationContext';
 import {
   getClient,
   getWorkoutPlan,
@@ -90,6 +91,8 @@ function OverviewTab({ client, nutritionPlan }: { client: Client; nutritionPlan:
   const [workoutStreak, setWorkoutStreak] = useState(0);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
+  const { permissionStatus, requestPermission } = useNotifications();
+
   useEffect(() => {
     getCheckIns(client.id).then((cis) => {
       const sorted = cis
@@ -135,6 +138,26 @@ function OverviewTab({ client, nutritionPlan }: { client: Client; nutritionPlan:
   const lost = first && latest ? (first.weight - latest.weight).toFixed(1) : '-';
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+      {permissionStatus === 'default' && (
+        <div className="bg-gradient-to-r from-[#FF5500]/20 to-[#FF8800]/10 border border-[#FF5500]/30 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3 text-center sm:text-right">
+            <div className="w-10 h-10 rounded-xl bg-[#FF5500]/20 flex items-center justify-center text-[#FF5500] flex-shrink-0 animate-bounce">
+              <Bell size={20} className="fill-[#FF5500]" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm">فعّل الإشعارات لتتابع جديدك!</h3>
+              <p className="text-xs text-white/50">احصل على إشعار فوري عند تعديل التمارين والتغذية من الكوتش.</p>
+            </div>
+          </div>
+          <button 
+            onClick={requestPermission} 
+            className="bg-[#FF5500] hover:bg-[#FF6620] text-white text-xs font-black px-5 py-2.5 rounded-xl transition shadow-[0_5px_15px_rgba(255,85,0,0.3)] active:scale-95 whitespace-nowrap"
+          >
+            تفعيل الآن 🔔
+          </button>
+        </div>
+      )}
+
       <div className="bg-gradient-to-br from-[#FF5500]/15 to-[#FF5500]/5 border border-[#FF5500]/20 rounded-2xl p-6">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-[#FF5500] flex items-center justify-center text-white font-black text-lg flex-shrink-0">{client.avatarInitials}</div>
