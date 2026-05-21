@@ -24,6 +24,7 @@ import {
   inMemoryPersistence
 } from 'firebase/auth';
 import { secondaryAuth } from '../../portal/firebase';
+import { getAuth } from 'firebase/auth';
 import NotificationSettings from '../../portal/NotificationSettings';
 import type {
   Client,
@@ -57,6 +58,7 @@ import {
   Image,
   Star,
   Send,
+  Bell,
 } from 'lucide-react';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -596,6 +598,7 @@ function ClientDetail() {
   const [activeTab, setActiveTab] = useState<DetailTab>('stats');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [testingPush, setTestingPush] = useState(false);
 
   useEffect(() => {
     if (!clientId) return;
@@ -621,11 +624,39 @@ function ClientDetail() {
 
         {client.phone && (
           <a href={`https://wa.me/${client.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`مرحباً ${client.name}!\n\nتم تحديث بياناتك أو خطتك على المنصة الخاصة بك. تفضل بزيارة حسابك لمشاهدة التحديثات الجديدة.\n\nمنصة El Fetiani Coaching\n${window.location.origin}/#/portal/login`)}`} target="_blank" rel="noreferrer" 
-             className="mr-auto flex items-center gap-2 bg-[#25D366]/20 text-[#25D366] hover:bg-[#25D366]/30 px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap">
+             className="flex items-center gap-2 bg-[#25D366]/20 text-[#25D366] hover:bg-[#25D366]/30 px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap">
             <MessageCircle size={16} />
             إشعار واتساب
           </a>
         )}
+
+        <button 
+          onClick={async () => {
+            try {
+              setTestingPush(true);
+              const uid = await getUidByClientId(client.id);
+              if (!uid) { alert('لم يتم العثور على حساب للعميل'); return; }
+              const auth = getAuth();
+              const token = await auth.currentUser?.getIdToken();
+              const res = await fetch('/api/send-push', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ userId: uid, type: 'general', title: 'تجربة إشعار', body: 'هذا إشعار تجريبي من لوحة التحكم' })
+              });
+              const data = await res.json();
+              alert(JSON.stringify(data, null, 2));
+            } catch (err: any) {
+              alert('Error: ' + err.message);
+            } finally {
+              setTestingPush(false);
+            }
+          }}
+          disabled={testingPush}
+          className="mr-auto flex items-center gap-2 border border-white/10 hover:border-white/30 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-bold transition disabled:opacity-50"
+        >
+          {testingPush ? <Loader2 size={16} className="animate-spin" /> : <Bell size={16} />}
+          اختبار إشعار
+        </button>
       </div>
 
       <div className="flex gap-1 bg-white/3 p-1 rounded-xl w-fit flex-wrap">
