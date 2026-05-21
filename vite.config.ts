@@ -10,11 +10,18 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: 'auto',
       includeAssets: ['favicon.svg', 'offline.html', 'icons/*.png'],
       workbox: {
         maximumFileSizeToCacheInBytes: 10000000, // 10MB
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/firebase-messaging-sw\.js$/],
+        // Force the new SW to take control immediately without waiting
+        skipWaiting: true,
+        clientsClaim: true,
+        // Clean up old caches from previous SW versions
+        cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
