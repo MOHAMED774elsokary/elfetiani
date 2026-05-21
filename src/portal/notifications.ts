@@ -112,9 +112,9 @@ export async function requestNotificationPermission(uid: string): Promise<string
     }
 
     return null;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error requesting notification permission:', error);
-    return null;
+    throw error;
   }
 }
 
