@@ -12,6 +12,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { getMessaging, getToken, onMessage, type MessagePayload } from 'firebase/messaging';
+import { getAuth } from 'firebase/auth';
 import { db } from './firebase';
 import { initializeApp, getApps } from 'firebase/app';
 
@@ -194,6 +195,32 @@ export async function createNotification(
     createdAt: serverTimestamp(),
     data: data || {},
   });
+
+  // Call Vercel Serverless Function to send Push Notification
+  try {
+    const auth = getAuth();
+    if (auth.currentUser) {
+      const idToken = await auth.currentUser.getIdToken();
+      // Call the API endpoint. Uses relative path so it works in both dev (Vite proxy/direct) and prod (Vercel)
+      fetch('/api/send-push', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          userId,
+          type,
+          title,
+          body,
+          data: data || {},
+          notificationId: id
+        })
+      }).catch(err => console.error('Failed to trigger push notification:', err));
+    }
+  } catch (error) {
+    console.error('Error getting auth token for push notification:', error);
+  }
 }
 
 /**
