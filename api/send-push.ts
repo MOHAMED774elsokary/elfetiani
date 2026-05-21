@@ -1,4 +1,4 @@
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 
 export default async function handler(req: any, res: any) {
   // Set CORS headers
@@ -17,7 +17,7 @@ export default async function handler(req: any, res: any) {
 
   try {
     // Initialize Firebase Admin only once
-    if (!admin.apps.length) {
+    if (!admin?.apps?.length) {
       const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
       if (serviceAccountKey) {
         const decodedKey = Buffer.from(serviceAccountKey, 'base64').toString('utf-8');
@@ -52,7 +52,7 @@ export default async function handler(req: any, res: any) {
       }
     }
 
-    if (!admin.apps.length) {
+    if (!admin?.apps?.length) {
       return res.status(500).json({ error: 'Firebase Admin failed to configure' });
     }
 
