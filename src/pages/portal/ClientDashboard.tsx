@@ -746,14 +746,14 @@ export default function ClientDashboard() {
     <PortalLayout title={`مرحباً ${client.name}`}>
       {showUpdateBanner && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-          <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/10 border border-green-500/30 rounded-2xl p-4 flex items-center justify-between gap-4">
+          <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/10 border border-yellow-500/30 rounded-2xl p-4 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center text-green-400 flex-shrink-0">
-                <Sparkles size={20} />
+              <div className="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center text-yellow-500 flex-shrink-0 animate-pulse">
+                <Settings size={20} />
               </div>
               <div>
-                <h3 className="font-bold text-sm text-green-400">تم تحديث المنصة بنجاح! 🚀</h3>
-                <p className="text-xs text-white/70">قمنا بإصلاح المشاكل وتحسين سرعة الأداء لتجربة تدريب أفضل.</p>
+                <h3 className="font-bold text-sm text-yellow-500">نظام الإشعارات قيد الصيانة ⚠️</h3>
+                <p className="text-xs text-white/70">نعمل حالياً على تطوير وتحديث الموقع. سيعود للعمل بالكامل قريباً، نشكر لك تفهمك!</p>
               </div>
             </div>
             <button onClick={() => setShowUpdateBanner(false)} className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-white/50 transition">
