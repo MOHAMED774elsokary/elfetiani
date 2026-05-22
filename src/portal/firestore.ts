@@ -73,15 +73,32 @@ export async function deleteClientData(clientId: string): Promise<void> {
 }
 
 export async function addBodyStat(clientId: string, stat: BodyStat): Promise<void> {
-  const client = await getClient(clientId);
-  if (!client) return;
-  const existing = client.bodyStats.filter((s) => s.date !== stat.date);
-  const updated: Client = {
-    ...client,
-    bodyStats: [...existing, stat].sort((a, b) => a.date.localeCompare(b.date)),
-  };
-  await saveClient(updated);
+  const clientRef = doc(db, 'clients', clientId);
+  // Step 1: remove any existing entry for the same date (if any)
+  // Step 2: add the new stat
+  // We do this as two separate updateDoc calls (arrayRemove then arrayUnion)
+  // to avoid a full document read. This is still 2 ops but they're small writes.
+  try {
+    // Try to find existing stat for this date and remove it first
+    const snap = await getDoc(clientRef);
+    if (snap.exists()) {
+      const existing = (snap.data() as Client).bodyStats || [];
+      const old = existing.find((s) => s.date === stat.date);
+      const { updateDoc, arrayRemove, arrayUnion } = await import('firebase/firestore');
+      if (old) {
+        await updateDoc(clientRef, { bodyStats: arrayRemove(old) });
+      }
+      await updateDoc(clientRef, { bodyStats: arrayUnion(stat) });
+    }
+  } catch {
+    // Fallback: full read-modify-write
+    const client = await getClient(clientId);
+    if (!client) return;
+    const existing = client.bodyStats.filter((s) => s.date !== stat.date);
+    await saveClient({ ...client, bodyStats: [...existing, stat].sort((a, b) => a.date.localeCompare(b.date)) });
+  }
 }
+
 
 // ─── Workout Plans ─────────────────────────────────────────────────────────
 

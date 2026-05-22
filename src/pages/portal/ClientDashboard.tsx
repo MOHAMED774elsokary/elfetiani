@@ -91,6 +91,7 @@ function OverviewTab({ client, nutritionPlan }: { client: Client; nutritionPlan:
   const [weightData, setWeightData] = useState<{ date: string; weight: number }[]>([]);
   const [workoutStreak, setWorkoutStreak] = useState(0);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photos, setPhotos] = useState<string[]>(client.progressPhotos || []);
 
   const { permissionStatus, requestPermission } = useNotifications();
 
@@ -114,7 +115,7 @@ function OverviewTab({ client, nutritionPlan }: { client: Client; nutritionPlan:
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    if ((client.progressPhotos || []).length >= 5) {
+    if (photos.length >= 5) {
       alert('الحد الأقصى 5 صور');
       return;
     }
@@ -127,14 +128,14 @@ function OverviewTab({ client, nutritionPlan }: { client: Client; nutritionPlan:
     const reader = new FileReader();
     reader.onload = async (ev) => {
       const base64 = ev.target?.result as string;
-      const newPhotos = [...(client.progressPhotos || []), base64];
-      await updateClientPhotos(client.id, newPhotos);
-      // Notify coach about new photo
+      const newPhotos = [...photos, base64];
+      setPhotos(newPhotos);
+      setUploadingPhoto(false);
+      updateClientPhotos(client.id, newPhotos).catch(() => {});
       const coachUid = import.meta.env.VITE_COACH_UID;
       if (coachUid) {
         notifyPhotoUploaded(coachUid, client.name).catch(() => {});
       }
-      window.location.reload();
     };
     reader.readAsDataURL(file);
   };
@@ -142,6 +143,7 @@ function OverviewTab({ client, nutritionPlan }: { client: Client; nutritionPlan:
   const latest = weightData.at(-1);
   const first = weightData[0];
   const lost = first && latest ? (first.weight - latest.weight).toFixed(1) : '-';
+  
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       {permissionStatus === 'default' && (
@@ -204,7 +206,7 @@ function OverviewTab({ client, nutritionPlan }: { client: Client; nutritionPlan:
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Image size={16} className="text-[#FF5500]" />
-            <h3 className="font-bold text-sm">صور التقدم ({(client.progressPhotos || []).length}/5)</h3>
+            <h3 className="font-bold text-sm">صور التقدم ({photos.length}/5)</h3>
           </div>
           <label className={`bg-[#FF5500]/10 text-[#FF5500] hover:bg-[#FF5500]/20 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition ${uploadingPhoto ? 'opacity-50 pointer-events-none' : ''}`}>
             {uploadingPhoto ? 'جاري الرفع...' : 'رفع صورة +'}
@@ -212,9 +214,9 @@ function OverviewTab({ client, nutritionPlan }: { client: Client; nutritionPlan:
           </label>
         </div>
         
-        {(client.progressPhotos || []).length > 0 ? (
+        {displayPhotos.length > 0 ? (
           <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
-            {(client.progressPhotos || []).map((src, idx) => (
+            {displayPhotos.map((src, idx) => (
               <img
                 key={idx}
                 src={src}
@@ -552,19 +554,23 @@ function CheckInTab({ clientId, clientName }: { clientId: string; clientName: st
       sleepHours: parseFloat(sleep) || 0,
       notes,
     };
-    await saveCheckIn(ci);
-    // Also sync weight to bodyStats so the overview chart updates
+
+    // Run Firestore writes in parallel — much faster than sequential awaits
     const { addBodyStat } = await import('../../portal/firestore');
-    await addBodyStat(clientId, { date: ci.date, weight: ci.weight });
-    // Notify coach about new check-in
-    const coachUid = import.meta.env.VITE_COACH_UID;
-    if (coachUid) {
-      notifyCheckinSubmitted(coachUid, clientName).catch(() => {});
-    }
+    await Promise.all([
+      saveCheckIn(ci),
+      addBodyStat(clientId, { date: ci.date, weight: ci.weight }),
+    ]);
+
+    // Show success immediately — don't wait for notifications or history reload
     setWeight(''); setSleep(''); setNotes(''); setEnergy(3);
-    await loadHistory();
     setSubmitting(false); setSaved(true);
     setTimeout(() => setSaved(false), 3000);
+
+    // Fire-and-forget: reload history + notify coach in background
+    loadHistory();
+    const coachUid = import.meta.env.VITE_COACH_UID;
+    if (coachUid) notifyCheckinSubmitted(coachUid, clientName).catch(() => {});
   }
 
   return (
