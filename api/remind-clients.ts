@@ -1,14 +1,16 @@
 import admin from 'firebase-admin';
 
 /**
- * Bi-weekly reminder: sends a push notification to ALL active clients
- * asking them to upload their progress photo and weight.
+ * Per-client bi-weekly reminder system.
  *
- * Triggered by Vercel Cron (see vercel.json):
- *   Schedule: 0 9 1,15 * *  →  9:00 AM on the 1st and 15th of every month
+ * Logic:
+ * - Runs every day at 9:00 AM UTC (cron: "0 9 * * *")
+ * - For each client, calculates how many days have passed since their startDate
+ * - If it's exactly a multiple of 14 days (±1 day tolerance) AND no reminder was sent today → send it
+ * - Stores lastReminderSentAt in Firestore collection "clientReminders"
  *
- * Can also be triggered manually via POST /api/remind-clients
- * with header: Authorization: Bearer <CRON_SECRET>
+ * This means each client gets their OWN 2-week rhythm based on when they started,
+ * not a global calendar-based blast to everyone at once.
  */
 
 function ensureAdminInitialized(): string | null {
@@ -38,13 +40,40 @@ function ensureAdminInitialized(): string | null {
   }
 }
 
+/**
+ * Returns true if today is a 14-day milestone for this client.
+ * Uses the client's startDate as the anchor.
+ * Tolerance: ±0 days (exact match only, since cron runs daily).
+ */
+function isDueTodayForClient(startDate: string): boolean {
+  const start = new Date(startDate);
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  start.setUTCHours(0, 0, 0, 0);
+
+  const diffMs = today.getTime() - start.getTime();
+  if (diffMs <= 0) return false; // hasn't started yet
+
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+  return diffDays > 0 && diffDays % 14 === 0;
+}
+
+/**
+ * Returns true if a reminder was already sent within the last 12 hours for this client.
+ * Prevents double-sending if the cron is retried.
+ */
+function wasRecentlySent(lastSentAt: admin.firestore.Timestamp | null): boolean {
+  if (!lastSentAt) return false;
+  const twelveHoursAgo = Date.now() - 12 * 60 * 60 * 1000;
+  return lastSentAt.toMillis() > twelveHoursAgo;
+}
+
 export default async function handler(req: any, res: any) {
-  // Allow GET (from Vercel Cron) or POST (manual trigger)
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Verify cron secret to prevent abuse
+  // Security: verify cron secret
   const cronSecret = process.env.CRON_SECRET;
   if (cronSecret) {
     const authHeader = req.headers.authorization;
@@ -56,111 +85,146 @@ export default async function handler(req: any, res: any) {
 
   const initError = ensureAdminInitialized();
   if (initError) {
-    console.error('[remind-clients] Firebase Admin init failed:', initError);
+    console.error('[remind-clients]', initError);
     return res.status(500).json({ error: initError });
   }
 
   try {
-    // 1. Get all clients
-    const clientsSnap = await admin.firestore().collection('clients').get();
+    const firestore = admin.firestore();
+    const today = new Date().toISOString().slice(0, 10);
+
+    // 1. Fetch all clients
+    const clientsSnap = await firestore.collection('clients').get();
     const clients = clientsSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
 
-    console.log(`[remind-clients] Sending reminders to ${clients.length} client(s)`);
-
-    let sent = 0;
-    let skipped = 0;
+    const results: Record<string, string> = {};
 
     for (const client of clients) {
-      // Get the Firebase Auth UID for this client
-      const mappingSnap = await admin.firestore()
-        .collection('userMappings')
-        .where('clientId', '==', client.id)
-        .get();
+      const clientId: string = client.id;
+      const clientName: string = client.name || 'عزيزي العميل';
+      const startDate: string = client.startDate;
 
-      if (mappingSnap.empty) {
-        skipped++;
+      if (!startDate) {
+        results[clientId] = 'skipped: no startDate';
         continue;
       }
 
-      const uid = mappingSnap.docs[0].id;
+      // Check if today is a 14-day milestone for this specific client
+      if (!isDueTodayForClient(startDate)) {
+        results[clientId] = 'skipped: not due today';
+        continue;
+      }
 
-      // Check if user has FCM tokens
-      const tokensSnap = await admin.firestore()
+      // Check for duplicate send guard
+      const reminderRef = firestore.collection('clientReminders').doc(clientId);
+      const reminderDoc = await reminderRef.get();
+      const lastSent = reminderDoc.exists ? (reminderDoc.data()?.lastSentAt as admin.firestore.Timestamp | null) : null;
+
+      if (wasRecentlySent(lastSent)) {
+        results[clientId] = 'skipped: already sent today';
+        continue;
+      }
+
+      // 2. Get Firebase UID for this client
+      const mappingSnap = await firestore
+        .collection('userMappings')
+        .where('clientId', '==', clientId)
+        .get();
+
+      if (mappingSnap.empty) {
+        results[clientId] = 'skipped: no userMapping found';
+        continue;
+      }
+
+      const uid: string = mappingSnap.docs[0].id;
+
+      // 3. Get FCM tokens
+      const tokensSnap = await firestore
         .collection('fcmTokens')
         .where('uid', '==', uid)
         .get();
 
       if (tokensSnap.empty) {
-        skipped++;
+        results[clientId] = 'skipped: no FCM tokens registered';
+        // Still mark reminder as "sent" so we don't keep retrying today
+        await reminderRef.set({ lastSentAt: admin.firestore.FieldValue.serverTimestamp(), lastDate: today }, { merge: true });
         continue;
       }
 
-      // Create a Firestore notification
-      const notifId = `remind-${Date.now()}-${uid.substring(0, 6)}`;
-      await admin.firestore().collection('notifications').doc(notifId).set({
+      // 4. Write notification to Firestore (shows in the in-app bell)
+      const notifId = `bi-remind-${today}-${uid.substring(0, 6)}`;
+      await firestore.collection('notifications').doc(notifId).set({
         id: notifId,
         userId: uid,
         type: 'general',
-        title: '⏰ تذكير نصف شهري',
-        body: `${client.name || 'عزيزي العميل'}، حان وقت تسجيل وزنك ورفع صورة تقدمك!`,
+        title: '⏰ تذكير الأسبوعين',
+        body: `${clientName}، مرّت أسبوعان! حان وقت تسجيل وزنك ورفع صورة التقدم 📸⚖️`,
         read: false,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         data: {},
       });
 
-      // Send push notification
+      // 5. Send push notification to all registered devices
       const tokens: string[] = tokensSnap.docs.map(d => d.data().token).filter(Boolean);
-      if (tokens.length > 0) {
-        const payload: admin.messaging.MulticastMessage = {
+      const payload: admin.messaging.MulticastMessage = {
+        notification: {
+          title: '⏰ تذكير الأسبوعين',
+          body: `${clientName}، مرّت أسبوعان! سجّل وزنك وارفع صورة تقدمك الآن 📸⚖️`,
+        },
+        data: {
+          type: 'general',
+          id: notifId,
+          url: '/',
+        },
+        webpush: {
           notification: {
-            title: '⏰ تذكير نصف شهري',
-            body: `${client.name || 'عزيزي العميل'}، حان وقت تسجيل وزنك ورفع صورة تقدمك! 📸⚖️`,
+            icon: '/icons/icon-512x512.svg',
+            badge: '/favicon.svg',
+            dir: 'rtl',
+            lang: 'ar',
+            requireInteraction: true, // stays on screen until dismissed
+            vibrate: [200, 100, 200],
           },
-          data: { type: 'general', id: notifId },
-          webpush: {
-            notification: {
-              icon: '/icons/icon-512x512.svg',
-              badge: '/favicon.svg',
-              dir: 'rtl',
-              lang: 'ar',
-            },
-            fcmOptions: { link: '/' },
-          },
-          tokens,
-        };
+          fcmOptions: { link: '/' },
+          headers: { Urgency: 'high' },
+        },
+        tokens,
+      };
 
-        const response = await admin.messaging().sendEachForMulticast(payload);
-        console.log(`[remind-clients] ${client.name}: sent=${response.successCount}, failed=${response.failureCount}`);
+      const response = await admin.messaging().sendEachForMulticast(payload);
+      console.log(`[remind-clients] ${clientName} (${clientId}): sent=${response.successCount}, failed=${response.failureCount}`);
 
-        // Clean up stale tokens
-        if (response.failureCount > 0) {
-          const batch = admin.firestore().batch();
-          response.responses.forEach((resp, idx) => {
-            if (!resp.success) {
-              const code = resp.error?.code;
-              if (code === 'messaging/registration-token-not-registered' ||
-                  code === 'messaging/invalid-registration-token') {
-                batch.delete(tokensSnap.docs[idx].ref);
-              }
+      // 6. Clean up stale tokens
+      if (response.failureCount > 0) {
+        const batch = firestore.batch();
+        response.responses.forEach((resp, idx) => {
+          if (!resp.success) {
+            const code = resp.error?.code;
+            if (code === 'messaging/registration-token-not-registered' ||
+                code === 'messaging/invalid-registration-token') {
+              batch.delete(tokensSnap.docs[idx].ref);
             }
-          });
-          await batch.commit();
-        }
+          }
+        });
+        await batch.commit();
       }
 
-      sent++;
+      // 7. Record that reminder was sent
+      await reminderRef.set({
+        lastSentAt: admin.firestore.FieldValue.serverTimestamp(),
+        lastDate: today,
+        clientName,
+        successCount: response.successCount,
+      }, { merge: true });
+
+      results[clientId] = `sent to ${response.successCount}/${tokens.length} devices`;
     }
 
-    return res.status(200).json({
-      success: true,
-      total: clients.length,
-      sent,
-      skipped,
-      timestamp: new Date().toISOString(),
-    });
+    console.log('[remind-clients] Done:', results);
+    return res.status(200).json({ success: true, date: today, results });
 
   } catch (error: any) {
-    console.error('[remind-clients] Error:', error);
+    console.error('[remind-clients] Fatal error:', error);
     return res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 }

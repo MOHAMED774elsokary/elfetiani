@@ -1,13 +1,18 @@
 /* eslint-disable no-undef */
-// Firebase Cloud Messaging Service Worker
-// This runs in the background and handles push notifications when the app is not in the foreground.
-//
-// SECURITY NOTE: Firebase config values below are intentionally hardcoded.
-// Service Workers run outside the Vite build pipeline and CANNOT read environment variables.
-// Firebase API keys are designed to be public — they identify the project, not authenticate access.
-// All actual security is enforced server-side via Firestore Security Rules and Firebase Auth.
-// See: https://firebase.google.com/docs/projects/api-keys
+/**
+ * Combined Service Worker:
+ * - Firebase Cloud Messaging (background push notifications)
+ * - Workbox PWA caching (offline support)
+ *
+ * IMPORTANT: This file is registered by VitePWA as the main service worker.
+ * It must be at /firebase-messaging-sw.js so Firebase getToken() can find it.
+ *
+ * SECURITY NOTE: Firebase config values are intentionally hardcoded here.
+ * Service Workers run outside the Vite build pipeline and CANNOT read environment variables.
+ * Firebase API keys are public-safe — see: https://firebase.google.com/docs/projects/api-keys
+ */
 
+// ─── Firebase Messaging ──────────────────────────────────────────────────────
 importScripts('https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/11.8.1/firebase-messaging-compat.js');
 
@@ -22,12 +27,12 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Handle background messages
+// Handle background push messages (app closed or not focused)
 messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Background message received:', payload);
+  console.log('[SW] Background FCM message:', payload);
 
-  const notificationTitle = payload.notification?.title || 'الفتياني Coaching';
-  const notificationOptions = {
+  const title = payload.notification?.title || 'الفتياني Coaching';
+  const options = {
     body: payload.notification?.body || 'لديك إشعار جديد',
     icon: '/icons/icon-512x512.svg',
     badge: '/favicon.svg',
@@ -35,40 +40,48 @@ messaging.onBackgroundMessage((payload) => {
     data: payload.data || {},
     dir: 'rtl',
     lang: 'ar',
-    vibrate: [200, 100, 200],
+    requireInteraction: true,   // stay on screen until user taps
+    vibrate: [200, 100, 200, 100, 200],
     actions: [
       { action: 'open', title: 'فتح التطبيق' },
+      { action: 'dismiss', title: 'إغلاق' },
     ],
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  self.registration.showNotification(title, options);
 });
 
-// Handle notification click
+// Handle notification click — open/focus the app
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+
+  if (event.action === 'dismiss') return;
 
   const data = event.notification.data || {};
   let url = '/';
 
-  // Route based on notification type
-  if (data.type === 'chat_message' || data.type === 'workout_assigned' ||
-      data.type === 'nutrition_updated' || data.type === 'checkin_reviewed') {
-    url = data.clientId ? '/#/portal/dashboard' : '/#/portal/admin';
-  }
+  if (data.type === 'workout_assigned') url = '/#/portal/dashboard/workout';
+  else if (data.type === 'nutrition_updated') url = '/#/portal/dashboard/nutrition';
+  else if (data.type === 'checkin_reviewed') url = '/#/portal/dashboard/checkin';
+  else if (data.type === 'checkin_submitted') url = '/#/portal/admin';
+  else if (data.type === 'chat_message') url = '/#/portal/dashboard';
+  else url = '/#/portal/dashboard';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      // Focus existing window if available
       for (const client of windowClients) {
         if (client.url.includes(self.location.origin) && 'focus' in client) {
           client.focus();
-          client.navigate(url);
+          if ('navigate' in client) client.navigate(url);
           return;
         }
       }
-      // Otherwise open a new window
       return clients.openWindow(url);
     })
   );
 });
+
+// ─── Workbox PWA Caching (injected by VitePWA at build time) ─────────────────
+// The line below is replaced by VitePWA's manifest injection during build.
+// It enables offline caching, asset precaching, and PWA functionality.
+self.__WB_MANIFEST;
