@@ -47,7 +47,7 @@ function Toggle({
       >
         <div
           className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
-            checked ? 'translate-x-0' : 'translate-x-5'
+            checked ? 'translate-x-5' : 'translate-x-0'
           }`}
         />
       </div>
