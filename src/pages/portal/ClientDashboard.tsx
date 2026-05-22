@@ -712,7 +712,6 @@ export default function ClientDashboard() {
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | undefined>();
   const [nutritionPlan, setNutritionPlan] = useState<NutritionPlan | undefined>();
   const [loading, setLoading] = useState(true);
-  const [showUpdateBanner, setShowUpdateBanner] = useState(true);
 
   useEffect(() => {
     if (!currentUser?.clientId) { navigate('/portal/login', { replace: true }); return; }
@@ -744,24 +743,7 @@ export default function ClientDashboard() {
 
   return (
     <PortalLayout title={`مرحباً ${client.name}`}>
-      {showUpdateBanner && (
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-          <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/10 border border-yellow-500/30 rounded-2xl p-4 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center text-yellow-500 flex-shrink-0 animate-pulse">
-                <Settings size={20} />
-              </div>
-              <div>
-                <h3 className="font-bold text-sm text-yellow-500">نظام الإشعارات قيد الصيانة ⚠️</h3>
-                <p className="text-xs text-white/70">نعمل حالياً على تطوير وتحديث الموقع. سيعود للعمل بالكامل قريباً، نشكر لك تفهمك!</p>
-              </div>
-            </div>
-            <button onClick={() => setShowUpdateBanner(false)} className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-white/50 transition">
-              <X size={16} />
-            </button>
-          </div>
-        </motion.div>
-      )}
+
 
       <div className="flex gap-1 mb-6 bg-white/3 p-1 rounded-xl overflow-x-auto hide-scrollbar -mx-4 px-4 md:mx-0 md:px-1 md:w-fit">
         {tabs.map(({ to, label, end }) => (
