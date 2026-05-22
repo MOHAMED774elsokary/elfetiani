@@ -2,6 +2,12 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "crons": [
+    {
+      "path": "/api/remind-clients",
+      "schedule": "0 9 1,15 * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",

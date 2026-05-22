@@ -350,3 +350,13 @@ export async function notifyChatMessage(
     messagePreview.length > 100 ? messagePreview.substring(0, 100) + '...' : messagePreview,
   );
 }
+
+export async function notifyPhotoUploaded(coachUid: string, clientName: string): Promise<void> {
+  await createNotification(
+    coachUid,
+    'checkin_submitted',
+    `صورة تقدم جديدة 📸`,
+    `${clientName} قام برفع صورة تقدم جديدة`,
+  );
+}
+

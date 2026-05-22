@@ -4,6 +4,7 @@ import { useAuth } from '../../portal/AuthContext';
 import PortalLayout from '../../portal/PortalLayout';
 import NotificationSettings from '../../portal/NotificationSettings';
 import { useNotifications } from '../../portal/NotificationContext';
+import { notifyCheckinSubmitted, notifyPhotoUploaded } from '../../portal/notifications';
 import {
   getClient,
   getWorkoutPlan,
@@ -128,7 +129,12 @@ function OverviewTab({ client, nutritionPlan }: { client: Client; nutritionPlan:
       const base64 = ev.target?.result as string;
       const newPhotos = [...(client.progressPhotos || []), base64];
       await updateClientPhotos(client.id, newPhotos);
-      window.location.reload(); // Refresh to show new photo
+      // Notify coach about new photo
+      const coachUid = import.meta.env.VITE_COACH_UID;
+      if (coachUid) {
+        notifyPhotoUploaded(coachUid, client.name).catch(() => {});
+      }
+      window.location.reload();
     };
     reader.readAsDataURL(file);
   };
@@ -517,7 +523,7 @@ function NutritionTab({ plan }: { plan: NutritionPlan | undefined }) {
 }
 
 // ─── Check-in Tab ────────────────────────────────────────────────────────────
-function CheckInTab({ clientId }: { clientId: string }) {
+function CheckInTab({ clientId, clientName }: { clientId: string; clientName: string }) {
   const [weight, setWeight] = useState('');
   const [energy, setEnergy] = useState(3);
   const [sleep, setSleep] = useState('');
@@ -550,6 +556,11 @@ function CheckInTab({ clientId }: { clientId: string }) {
     // Also sync weight to bodyStats so the overview chart updates
     const { addBodyStat } = await import('../../portal/firestore');
     await addBodyStat(clientId, { date: ci.date, weight: ci.weight });
+    // Notify coach about new check-in
+    const coachUid = import.meta.env.VITE_COACH_UID;
+    if (coachUid) {
+      notifyCheckinSubmitted(coachUid, clientName).catch(() => {});
+    }
     setWeight(''); setSleep(''); setNotes(''); setEnergy(3);
     await loadHistory();
     setSubmitting(false); setSaved(true);
@@ -759,7 +770,7 @@ export default function ClientDashboard() {
         <Route index element={<OverviewTab client={client} nutritionPlan={nutritionPlan} />} />
         <Route path="workout" element={<WorkoutTab plan={workoutPlan} clientId={client.id} />} />
         <Route path="nutrition" element={<NutritionTab plan={nutritionPlan} />} />
-        <Route path="checkin" element={<CheckInTab clientId={client.id} />} />
+        <Route path="checkin" element={<CheckInTab clientId={client.id} clientName={client.name} />} />
         <Route path="settings" element={<SettingsTab client={client} />} />
         <Route path="notifications" element={<NotificationSettings />} />
       </Routes>
