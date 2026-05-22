@@ -214,9 +214,9 @@ function OverviewTab({ client, nutritionPlan }: { client: Client; nutritionPlan:
           </label>
         </div>
         
-        {displayPhotos.length > 0 ? (
+        {photos.length > 0 ? (
           <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
-            {displayPhotos.map((src, idx) => (
+            {photos.map((src: string, idx: number) => (
               <img
                 key={idx}
                 src={src}
