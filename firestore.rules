@@ -41,7 +41,13 @@ service cloud.firestore {
 
     // ─── Workout Logs ───────────────────────────────────────────────────────
     match /workoutLogs/{logId} {
-      allow read, write: if request.auth != null && (isCoach() || resource.data.clientId == clientId() || request.resource.data.clientId == clientId());
+      // read: coach sees all; client sees only their own (resource.data exists)
+      allow read: if request.auth != null && (isCoach() || resource.data.clientId == clientId());
+      // create: on new doc, resource is null — use request.resource instead
+      allow create: if request.auth != null && (isCoach() || request.resource.data.clientId == clientId());
+      // update: document already exists, both resource and request.resource are available
+      allow update: if request.auth != null && (isCoach() || resource.data.clientId == clientId());
+      allow delete: if request.auth != null && isCoach();
     }
 
     // ─── Check-ins ──────────────────────────────────────────────────────────
@@ -77,7 +83,7 @@ service cloud.firestore {
     // ─── Notification Preferences ────────────────────────────────────────────
     match /notificationPreferences/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
-      allow read: if request.auth != null && isCoach();
+      allow read, delete: if request.auth != null && isCoach();
     }
   }
 }

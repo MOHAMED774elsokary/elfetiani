@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, User, Activity, Target, CheckCircle, ChevronDown, Dumbbell, HeartPulse, Utensils, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Send, User, Activity, Target, CheckCircle, ChevronDown, Dumbbell, HeartPulse, Utensils, ChevronRight, ChevronLeft, Ruler } from 'lucide-react';
 import emailjs from '@emailjs/browser';
 import type { Language } from '../App';
 
@@ -21,6 +21,7 @@ interface FormData {
   weight: string; height: string; activity: ActivityLevel; activityDetails: string; goal: Goal;
   fitnessLevel: FitnessLevel; trainingLocation: TrainingLocation; equipment: string[];
   trainingDays: number; injuries: string; dietary: string; notes: string;
+  chest: string; belly: string; arms: string; thighs: string; buttocks: string;
 }
 
 function calcMacros(data: FormData) {
@@ -39,7 +40,7 @@ function calcMacros(data: FormData) {
   return { bmr: Math.round(bmr), tdee, bmi };
 }
 
-const inputClass = "w-full bg-[#0d0d0d] border border-white/10 rounded-xl px-4 py-3 text-white font-medium placeholder:text-white/20 focus:outline-none focus:border-[#FF5500]/60 focus:shadow-[0_0_0_3px_rgba(255,85,0,0.1)] transition-all duration-300";
+const inputClass = "w-full bg-[#0d0d0d] border border-white/10 rounded-xl px-4 py-3 text-white font-medium placeholder:text-white/20 focus:outline-none focus:border-[#E8520D]/60 focus:shadow-[0_0_0_3px_rgba(232, 82, 13, 0.1)] transition-all duration-300";
 const selectClass = `${inputClass} appearance-none cursor-pointer`;
 const labelClass = "block text-white/60 text-sm font-bold mb-2";
 
@@ -52,6 +53,7 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
     weight: '', height: '', activity: 'moderate', activityDetails: '', goal: 'lose',
     fitnessLevel: 'beginner', trainingLocation: 'gym', equipment: [],
     trainingDays: 3, injuries: '', dietary: '', notes: '',
+    chest: '', belly: '', arms: '', thighs: '', buttocks: '',
   });
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [validationError, setValidationError] = useState('');
@@ -135,6 +137,11 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
       client_dietary: form.dietary || (lang === 'ar' ? 'لا يوجد' : 'None'),
       client_notes: form.notes || (lang === 'ar' ? 'لا توجد' : 'None'),
       bmr: `${macros.bmr} kcal`, tdee: `${macros.tdee} kcal`,
+      client_chest: form.chest ? `${form.chest} cm` : '-',
+      client_belly: form.belly ? `${form.belly} cm` : '-',
+      client_arms: form.arms ? `${form.arms} cm` : '-',
+      client_thighs: form.thighs ? `${form.thighs} cm` : '-',
+      client_buttocks: form.gender === 'female' && form.buttocks ? `${form.buttocks} cm` : '-',
     };
     try {
       await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
@@ -179,6 +186,12 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
       errorMsg: 'حدث خطأ. حاول مرة أخرى أو تواصل مع المدرب مباشرة.',
       bmiLabel: 'مؤشر كتلة الجسم', calories: 'السعرات', protein: 'بروتين', carbs: 'كارب', fat: 'دهون',
       livePreview: 'معاينة مباشرة', healthTitle: 'المشاكل الصحية والقيود',
+      measurementsTitle: 'مقاسات الجسم (اختياري / يفضل إدخالها)',
+      chest: 'الصدر', chestPh: 'سم', chestHelp: 'قس محيط الصدر عند أبرز منطقة، مع التأكد من أن شريط القياس أفقي وموازي للأرض.',
+      belly: 'البطن / الخصر', bellyPh: 'سم', bellyHelp: 'قس محيط البطن عند مستوى السرة، مع إرخاء البطن وعدم شفطها للداخل.',
+      arms: 'الذراعين', armsPh: 'سم', armsHelp: 'قس محيط الذراع من عند أعرض منطقة في عضلة البايسبس، مع إرخاء الذراع بجانب الجسم.',
+      thighs: 'الفخذين', thighsPh: 'سم', thighsHelp: 'قس محيط الفخذ من عند أعرض نقطة أسفل الأرداف مباشرة.',
+      buttocks: 'المؤخرة / الأرداف', buttocksPh: 'سم', buttocksHelp: 'قس محيط الأرداف من عند أعرض وأبرز منطقة، مع ضم القدمين معاً.',
     },
     en: {
       title: 'Client Intake Form',
@@ -208,6 +221,12 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
       errorMsg: 'Something went wrong. Please try again or contact your coach directly.',
       bmiLabel: 'BMI', calories: 'Calories', protein: 'Protein', carbs: 'Carbs', fat: 'Fat',
       livePreview: 'Live Preview', healthTitle: 'Health Issues & Restrictions',
+      measurementsTitle: 'Body Measurements (Recommended)',
+      chest: 'Chest', chestPh: 'cm', chestHelp: 'Measure around the fullest part of your chest, keeping the tape horizontal.',
+      belly: 'Belly / Waist', bellyPh: 'cm', bellyHelp: 'Measure around your navel (belly button), relaxed without sucking it in.',
+      arms: 'Arms', armsPh: 'cm', armsHelp: 'Measure around the widest part of your bicep while your arm is relaxed at your side.',
+      thighs: 'Thighs', thighsPh: 'cm', thighsHelp: 'Measure around the thickest part of your thigh, just below the buttocks.',
+      buttocks: 'Buttocks / Hips', buttocksPh: 'cm', buttocksHelp: 'Measure around the widest and fullest part of your hips, with your feet together.',
     }
   };
   const c = t[lang];
@@ -221,12 +240,12 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
   };
 
   if (status === 'sent') return (
-    <section className="py-24 bg-[#050505]" id="intake-form">
+    <section className="py-24 bg-[#080706]" id="intake-form">
       <div className="container mx-auto px-4 max-w-2xl">
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-          className="text-center py-20 px-8 bg-[#111] rounded-3xl border border-[#FF5500]/20">
+          className="text-center py-20 px-8 bg-[#111] rounded-3xl border border-[#E8520D]/20">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}>
-            <CheckCircle className="w-20 h-20 text-[#FF5500] mx-auto mb-6" />
+            <CheckCircle className="w-20 h-20 text-[#E8520D] mx-auto mb-6" />
           </motion.div>
           <h3 className="text-3xl font-black text-white mb-4">{c.sentTitle}</h3>
           <p className="text-gray-400 font-medium text-lg">{c.sentMsg}</p>
@@ -236,7 +255,7 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
   );
 
   return (
-    <section className="py-24 relative bg-[#050505] overflow-hidden" id="intake-form">
+    <section className="py-24 relative bg-[#080706] overflow-hidden" id="intake-form">
       <div className={`container mx-auto px-4 max-w-3xl relative z-10 ${isRtl ? 'text-right' : 'text-left'}`} dir={isRtl ? 'rtl' : 'ltr'}>
 
         {/* Header */}
@@ -250,12 +269,12 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
         <div className="flex items-center justify-center gap-2 mb-10">
           {STEPS.map((_, i) => (
             <div key={i} className="flex items-center gap-2">
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full font-black text-sm border-2 transition-all duration-300 ${i < step ? 'bg-[#FF5500] border-[#FF5500] text-white' :
-                  i === step ? 'border-[#FF5500] text-[#FF5500] bg-transparent' :
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full font-black text-sm border-2 transition-all duration-300 ${i < step ? 'bg-[#E8520D] border-[#E8520D] text-white' :
+                  i === step ? 'border-[#E8520D] text-[#E8520D] bg-transparent' :
                     'border-white/20 text-white/30 bg-transparent'
                 }`}>{i < step ? '✓' : i + 1}</div>
               <span className={`text-xs font-bold hidden sm:block transition-colors ${i === step ? 'text-white' : 'text-white/30'}`}>{c.steps[i]}</span>
-              {i < STEPS.length - 1 && <div className={`w-8 h-[2px] rounded-full transition-colors ${i < step ? 'bg-[#FF5500]' : 'bg-white/10'}`} />}
+              {i < STEPS.length - 1 && <div className={`w-8 h-[2px] rounded-full transition-colors ${i < step ? 'bg-[#E8520D]' : 'bg-white/10'}`} />}
             </div>
           ))}
         </div>
@@ -268,7 +287,7 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
               <motion.div key="step0" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3 }}
                 className="bg-[#0d0d0d] border border-white/5 rounded-3xl p-6 md:p-8 space-y-6">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 rounded-lg bg-[#FF5500]/15 flex items-center justify-center"><User className="w-4 h-4 text-[#FF5500]" /></div>
+                  <div className="w-8 h-8 rounded-lg bg-[#E8520D]/15 flex items-center justify-center"><User className="w-4 h-4 text-[#E8520D]" /></div>
                   <h3 className="text-white font-black text-lg">{c.steps[0]}</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -281,7 +300,7 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
                     <div className="flex gap-4">
                       {(['male', 'female'] as const).map(g => (
                         <button type="button" key={g} onClick={() => setForm(p => ({ ...p, gender: g }))}
-                          className={`flex-1 py-3 rounded-xl font-bold border transition-all duration-300 ${form.gender === g ? 'bg-[#FF5500] border-[#FF5500] text-white shadow-[0_0_15px_rgba(255,85,0,0.3)]' : 'bg-[#0d0d0d] border-white/10 text-white/50 hover:border-white/20'}`}>
+                          className={`flex-1 py-3 rounded-xl font-bold border transition-all duration-300 ${form.gender === g ? 'bg-[#E8520D] border-[#E8520D] text-white shadow-[0_0_15px_rgba(232, 82, 13, 0.3)]' : 'bg-[#0d0d0d] border-white/10 text-white/50 hover:border-white/20'}`}>
                           {g === 'male' ? c.male : c.female}
                         </button>
                       ))}
@@ -297,7 +316,7 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
                 className="space-y-6">
                 <div className="bg-[#0d0d0d] border border-white/5 rounded-3xl p-6 md:p-8 space-y-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 rounded-lg bg-[#FF5500]/15 flex items-center justify-center"><Activity className="w-4 h-4 text-[#FF5500]" /></div>
+                    <div className="w-8 h-8 rounded-lg bg-[#E8520D]/15 flex items-center justify-center"><Activity className="w-4 h-4 text-[#E8520D]" /></div>
                     <h3 className="text-white font-black text-lg">{c.steps[1]}</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -321,16 +340,53 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
                   </div>
                 </div>
 
+                {/* Body Measurements */}
+                <div className="bg-[#0d0d0d] border border-white/5 rounded-3xl p-6 md:p-8 space-y-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-8 h-8 rounded-lg bg-[#E8520D]/15 flex items-center justify-center"><Ruler className="w-4 h-4 text-[#E8520D]" /></div>
+                    <h3 className="text-white font-black text-lg">{c.measurementsTitle}</h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                      <label className={labelClass}>{c.chest}</label>
+                      <input type="number" placeholder={c.chestPh} value={form.chest} onChange={set('chest')} className={inputClass} />
+                      <p className="mt-2 text-xs text-white/40 leading-relaxed">{c.chestHelp}</p>
+                    </div>
+                    <div>
+                      <label className={labelClass}>{c.belly}</label>
+                      <input type="number" placeholder={c.bellyPh} value={form.belly} onChange={set('belly')} className={inputClass} />
+                      <p className="mt-2 text-xs text-white/40 leading-relaxed">{c.bellyHelp}</p>
+                    </div>
+                    <div>
+                      <label className={labelClass}>{c.arms}</label>
+                      <input type="number" placeholder={c.armsPh} value={form.arms} onChange={set('arms')} className={inputClass} />
+                      <p className="mt-2 text-xs text-white/40 leading-relaxed">{c.armsHelp}</p>
+                    </div>
+                    <div>
+                      <label className={labelClass}>{c.thighs}</label>
+                      <input type="number" placeholder={c.thighsPh} value={form.thighs} onChange={set('thighs')} className={inputClass} />
+                      <p className="mt-2 text-xs text-white/40 leading-relaxed">{c.thighsHelp}</p>
+                    </div>
+                    {form.gender === 'female' && (
+                      <div className="md:col-span-2">
+                        <label className={labelClass}>{c.buttocks}</label>
+                        <input type="number" placeholder={c.buttocksPh} value={form.buttocks} onChange={set('buttocks')} className={inputClass} />
+                        <p className="mt-2 text-xs text-white/40 leading-relaxed">{c.buttocksHelp}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Goal */}
                 <div className="bg-[#0d0d0d] border border-white/5 rounded-3xl p-6 md:p-8 space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-[#FF5500]/15 flex items-center justify-center"><Target className="w-4 h-4 text-[#FF5500]" /></div>
+                    <div className="w-8 h-8 rounded-lg bg-[#E8520D]/15 flex items-center justify-center"><Target className="w-4 h-4 text-[#E8520D]" /></div>
                     <h3 className="text-white font-black text-lg">{c.goal}</h3>
                   </div>
                   <div className="grid grid-cols-3 gap-3">
                     {(['lose', 'maintain', 'gain'] as Goal[]).map((g, i) => (
                       <button type="button" key={g} onClick={() => setForm(p => ({ ...p, goal: g }))}
-                        className={`py-3 px-2 rounded-xl font-bold text-sm border transition-all duration-300 ${form.goal === g ? 'bg-[#FF5500] border-[#FF5500] text-white shadow-[0_0_15px_rgba(255,85,0,0.3)]' : 'bg-[#111] border-white/10 text-white/50 hover:border-white/20'}`}>
+                        className={`py-3 px-2 rounded-xl font-bold text-sm border transition-all duration-300 ${form.goal === g ? 'bg-[#E8520D] border-[#E8520D] text-white shadow-[0_0_15px_rgba(232, 82, 13, 0.3)]' : 'bg-[#111] border-white/10 text-white/50 hover:border-white/20'}`}>
                         {c.goals[i]}
                       </button>
                     ))}
@@ -340,8 +396,8 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
                 {/* Live BMI Preview */}
                 {macros && (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                    className="bg-[#0d0d0d] border border-[#FF5500]/20 rounded-3xl p-6 space-y-4">
-                    <p className="text-[#FF5500] font-black text-sm uppercase tracking-widest">{c.livePreview}</p>
+                    className="bg-[#0d0d0d] border border-[#E8520D]/20 rounded-3xl p-6 space-y-4">
+                    <p className="text-[#E8520D] font-black text-sm uppercase tracking-widest">{c.livePreview}</p>
                     {/* BMI */}
                     <div className="flex items-center justify-between">
                       <span className="text-white/60 font-bold text-sm">{c.bmiLabel}</span>
@@ -360,7 +416,7 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
                 <motion.div key="step2" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3 }}
                   className="bg-[#0d0d0d] border border-white/5 rounded-3xl p-6 md:p-8 space-y-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 rounded-lg bg-[#FF5500]/15 flex items-center justify-center"><Dumbbell className="w-4 h-4 text-[#FF5500]" /></div>
+                    <div className="w-8 h-8 rounded-lg bg-[#E8520D]/15 flex items-center justify-center"><Dumbbell className="w-4 h-4 text-[#E8520D]" /></div>
                     <h3 className="text-white font-black text-lg">{c.steps[2]}</h3>
                   </div>
 
@@ -370,7 +426,7 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
                     <div className="grid grid-cols-3 gap-3">
                       {(['beginner', 'intermediate', 'advanced'] as FitnessLevel[]).map((lvl, i) => (
                         <button type="button" key={lvl} onClick={() => setForm(p => ({ ...p, fitnessLevel: lvl }))}
-                          className={`py-3 rounded-xl font-bold text-sm border transition-all duration-300 ${form.fitnessLevel === lvl ? 'bg-[#FF5500] border-[#FF5500] text-white shadow-[0_0_15px_rgba(255,85,0,0.3)]' : 'bg-[#111] border-white/10 text-white/50 hover:border-white/20'}`}>
+                          className={`py-3 rounded-xl font-bold text-sm border transition-all duration-300 ${form.fitnessLevel === lvl ? 'bg-[#E8520D] border-[#E8520D] text-white shadow-[0_0_15px_rgba(232, 82, 13, 0.3)]' : 'bg-[#111] border-white/10 text-white/50 hover:border-white/20'}`}>
                           {c.fitnessLevels[i]}
                         </button>
                       ))}
@@ -383,7 +439,7 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
                     <div className="grid grid-cols-3 gap-3">
                       {(['gym', 'home', 'both'] as TrainingLocation[]).map((loc, i) => (
                         <button type="button" key={loc} onClick={() => setForm(p => ({ ...p, trainingLocation: loc }))}
-                          className={`py-3 rounded-xl font-bold text-sm border transition-all duration-300 ${form.trainingLocation === loc ? 'bg-[#FF5500] border-[#FF5500] text-white shadow-[0_0_15px_rgba(255,85,0,0.3)]' : 'bg-[#111] border-white/10 text-white/50 hover:border-white/20'}`}>
+                          className={`py-3 rounded-xl font-bold text-sm border transition-all duration-300 ${form.trainingLocation === loc ? 'bg-[#E8520D] border-[#E8520D] text-white shadow-[0_0_15px_rgba(232, 82, 13, 0.3)]' : 'bg-[#111] border-white/10 text-white/50 hover:border-white/20'}`}>
                           {c.trainingLocations[i]}
                         </button>
                       ))}
@@ -396,7 +452,7 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
                     <div className="flex flex-wrap gap-2">
                       {c.equipmentOptions.map((opt, i) => (
                         <button type="button" key={i} onClick={() => toggleEquipment(opt)}
-                          className={`px-4 py-2 rounded-xl font-bold text-sm border transition-all duration-300 ${form.equipment.includes(opt) ? 'bg-[#FF5500] border-[#FF5500] text-white shadow-[0_0_10px_rgba(255,85,0,0.2)]' : 'bg-[#111] border-white/10 text-white/50 hover:border-white/20'}`}>
+                          className={`px-4 py-2 rounded-xl font-bold text-sm border transition-all duration-300 ${form.equipment.includes(opt) ? 'bg-[#E8520D] border-[#E8520D] text-white shadow-[0_0_10px_rgba(232, 82, 13, 0.2)]' : 'bg-[#111] border-white/10 text-white/50 hover:border-white/20'}`}>
                           {opt}
                         </button>
                       ))}
@@ -409,7 +465,7 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
                     <div className="flex gap-2">
                       {[1, 2, 3, 4, 5, 6, 7].map(d => (
                         <button type="button" key={d} onClick={() => setForm(p => ({ ...p, trainingDays: d }))}
-                          className={`flex-1 py-3 rounded-xl font-black text-sm border transition-all duration-300 ${form.trainingDays === d ? 'bg-[#FF5500] border-[#FF5500] text-white shadow-[0_0_15px_rgba(255,85,0,0.3)]' : 'bg-[#111] border-white/10 text-white/50 hover:border-white/20'}`}>
+                          className={`flex-1 py-3 rounded-xl font-black text-sm border transition-all duration-300 ${form.trainingDays === d ? 'bg-[#E8520D] border-[#E8520D] text-white shadow-[0_0_15px_rgba(232, 82, 13, 0.3)]' : 'bg-[#111] border-white/10 text-white/50 hover:border-white/20'}`}>
                           {d}
                         </button>
                       ))}
@@ -427,7 +483,7 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
                 <motion.div key="step2-health" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3, delay: 0.1 }}
                   className="bg-[#0d0d0d] border border-white/5 rounded-3xl p-6 md:p-8 space-y-6 mt-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 rounded-lg bg-[#FF5500]/15 flex items-center justify-center"><HeartPulse className="w-4 h-4 text-[#FF5500]" /></div>
+                    <div className="w-8 h-8 rounded-lg bg-[#E8520D]/15 flex items-center justify-center"><HeartPulse className="w-4 h-4 text-[#E8520D]" /></div>
                     <h3 className="text-white font-black text-lg">{c.healthTitle}</h3>
                   </div>
 
@@ -459,14 +515,14 @@ export default function ClientIntakeForm({ lang }: ClientIntakeFormProps) {
 
             {step < STEPS.length - 1 ? (
               <button type="button" onClick={handleNext}
-                className="flex-1 py-4 bg-[#FF5500] text-white font-black text-lg rounded-2xl flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,85,0,0.2)] hover:shadow-[0_0_30px_rgba(255,85,0,0.35)] hover:scale-[1.02] active:scale-95 transition-all relative overflow-hidden group">
+                className="flex-1 py-4 bg-[#E8520D] text-white font-black text-lg rounded-2xl flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(232, 82, 13, 0.2)] hover:shadow-[0_0_30px_rgba(232, 82, 13, 0.35)] hover:scale-[1.02] active:scale-95 transition-all relative overflow-hidden group">
                 <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                 <span className="relative">{c.next}</span>
                 {isRtl ? <ChevronLeft className="w-5 h-5 relative" /> : <ChevronRight className="w-5 h-5 relative" />}
               </button>
             ) : (
               <button type="button" disabled={status === 'sending'} onClick={handleSubmit}
-                className="flex-1 py-4 bg-[#FF5500] text-white font-black text-lg rounded-2xl flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(255,85,0,0.2)] hover:shadow-[0_0_30px_rgba(255,85,0,0.35)] hover:scale-[1.02] active:scale-95 transition-all relative overflow-hidden group disabled:opacity-60 disabled:cursor-not-allowed">
+                className="flex-1 py-4 bg-[#E8520D] text-white font-black text-lg rounded-2xl flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(232, 82, 13, 0.2)] hover:shadow-[0_0_30px_rgba(232, 82, 13, 0.35)] hover:scale-[1.02] active:scale-95 transition-all relative overflow-hidden group disabled:opacity-60 disabled:cursor-not-allowed">
                 <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                 <Send className="w-5 h-5 relative" />
                 <span className="relative">{status === 'sending' ? c.sending : c.submit}</span>

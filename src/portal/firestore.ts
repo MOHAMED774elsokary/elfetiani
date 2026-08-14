@@ -199,3 +199,35 @@ export async function updateClientPhotos(clientId: string, photos: string[]): Pr
   const clientRef = doc(db, 'clients', clientId);
   await setDoc(clientRef, { progressPhotos: photos }, { merge: true });
 }
+
+// ─── Subscription & Account Lock ──────────────────────────────────────────────
+
+/**
+ * Lock a client account — blocks dashboard access until the coach unlocks it.
+ */
+export async function lockClient(clientId: string): Promise<void> {
+  const clientRef = doc(db, 'clients', clientId);
+  await setDoc(clientRef, { isLocked: true, lockedAt: new Date().toISOString() }, { merge: true });
+}
+
+/**
+ * Unlock a client account — restores dashboard access.
+ */
+export async function unlockClient(clientId: string): Promise<void> {
+  const clientRef = doc(db, 'clients', clientId);
+  await setDoc(clientRef, { isLocked: false, lockedAt: null }, { merge: true });
+}
+
+/**
+ * Checks all clients and locks any whose endDate has passed.
+ * Returns the list of clientIds that were newly locked.
+ */
+export async function checkAndLockExpiredSubscriptions(): Promise<string[]> {
+  const clients = await getClients();
+  const today = new Date().toISOString().slice(0, 10);
+  const toLock = clients.filter(
+    (c) => c.endDate && c.endDate < today && !c.isLocked
+  );
+  await Promise.all(toLock.map((c) => lockClient(c.id)));
+  return toLock.map((c) => c.id);
+}

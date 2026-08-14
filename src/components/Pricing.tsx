@@ -10,22 +10,22 @@ interface PricingProps {
 
 const vipFeatures = {
   ar: [
-    'برنامج غذائي محسوب حسب هدفك',
-    'برنامج تدريبي مخصص لك',
-    'منصة تجمع التمارين الخاصة بك',
-    'متابعة الأوزان والتقدم',
-    'كل شيء متجمع في منصة واحدة',
-    'متابعة يومية مساءً مع المدرب',
-    'استلام البرنامج خلال يوم واحد',
+    'برنامج غذائي مرن ومخصص بالكامل لتفضيلاتك',
+    'خطة تدريبية احترافية تُحدث باستمرار',
+    'منصة متكاملة لتحليل أدائك وتطورك بدقة',
+    'تقييم شامل وتعديل فوري للخطة عند الحاجة',
+    'أولوية في الرد والدعم الفني المباشر',
+    'متابعة يومية دقيقة مع المدرب (مساءً)',
+    'استلام البرنامج (أولوية قصوى) خلال ٢٤ ساعة',
   ],
   en: [
-    'Personalised nutrition plan',
-    'Custom training program',
-    'Platform for all your workouts',
-    'Weight & progress tracking',
-    'Everything in one platform',
-    'Daily evening check-in with coach',
-    'Program delivered within 1 day',
+    'Fully customized & flexible nutrition plan',
+    'Professional training program with frequent updates',
+    'Comprehensive platform for accurate performance analysis',
+    'Advanced progress tracking & dynamic adjustments',
+    'Priority support & direct communication',
+    'Daily evening check-ins directly with the coach',
+    'Priority delivery within 24 hours',
   ],
 };
 
@@ -58,9 +58,9 @@ export default function Pricing({ lang }: PricingProps) {
         {
           id: '3-months',
           name: 'اشتراك ٣ شهور',
-          price: '2000',
+          price: '2600',
           fakePrice: '3500',
-          discountPercent: '42',
+          discountPercent: '25',
           popular: true,
           badge: 'الأكثر مبيعاً',
           cta: 'اشترك الآن',
@@ -68,9 +68,9 @@ export default function Pricing({ lang }: PricingProps) {
         {
           id: '6-months',
           name: 'اشتراك ٦ شهور',
-          price: '3000',
+          price: '4800',
           fakePrice: '6000',
-          discountPercent: '50',
+          discountPercent: '20',
           popular: false,
           cta: 'اشترك الآن',
         },
@@ -93,9 +93,9 @@ export default function Pricing({ lang }: PricingProps) {
         {
           id: '3-months',
           name: '3 Months Plan',
-          price: '2000',
+          price: '2600',
           fakePrice: '3500',
-          discountPercent: '42',
+          discountPercent: '25',
           popular: true,
           badge: 'Best Seller',
           cta: 'Subscribe Now',
@@ -103,9 +103,9 @@ export default function Pricing({ lang }: PricingProps) {
         {
           id: '6-months',
           name: '6 Months Plan',
-          price: '3000',
+          price: '4800',
           fakePrice: '6000',
-          discountPercent: '50',
+          discountPercent: '20',
           popular: false,
           cta: 'Subscribe Now',
         },
@@ -124,13 +124,13 @@ export default function Pricing({ lang }: PricingProps) {
   };
 
   return (
-    <section id="pricing" className="py-24 bg-[#050505] relative z-10 overflow-hidden">
+    <section id="pricing" className="py-24 bg-[#080706] relative z-10 overflow-hidden">
       {/* Ambient glow */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255,85,0,0.07) 0%, transparent 70%)',
+            'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(232, 82, 13, 0.07) 0%, transparent 70%)',
         }}
       />
 
@@ -162,10 +162,10 @@ export default function Pricing({ lang }: PricingProps) {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.2 }}
                 viewport={{ once: true }}
-                className={`bg-[#111111] rounded-3xl p-8 lg:p-10 relative flex flex-col shrink-0 w-[85vw] sm:w-[400px] lg:w-auto snap-center border transition-colors duration-500
+                className={`bg-[#0d0c0b] rounded-3xl p-8 lg:p-10 relative flex flex-col shrink-0 w-[85vw] sm:w-[400px] lg:w-auto snap-center border transition-colors duration-500
                   ${tier.popular
-                    ? 'border-[#FF5500]/40 shadow-[0_0_40px_rgba(255,85,0,0.12)]'
-                    : 'border-white/5 hover:border-[#FF5500]/30'
+                    ? 'border-[#E8520D]/40 shadow-[0_0_40px_rgba(232, 82, 13, 0.12)]'
+                    : 'border-white/5 hover:border-[#E8520D]/30'
                   }`}
               >
                 {tier.popular && (
@@ -187,12 +187,12 @@ export default function Pricing({ lang }: PricingProps) {
                       {tier.fakePrice}{' '}
                       <span className="text-sm">{lang === 'ar' ? 'ج.م' : 'EGP'}</span>
                     </span>
-                    <span className="text-5xl font-black text-primary drop-shadow-[0_0_20px_rgba(255,85,0,0.4)] mt-1">
+                    <span className="text-5xl font-black text-primary drop-shadow-[0_0_20px_rgba(232, 82, 13, 0.4)] mt-1">
                       {tier.price}{' '}
                       <span className="text-xl text-white/50">{lang === 'ar' ? 'ج.م' : 'EGP'}</span>
                     </span>
                     {tier.discountPercent && (
-                      <span className="mt-3 bg-[#FF5500]/10 text-[#FF5500] border border-[#FF5500]/30 px-4 py-1.5 rounded-full text-sm font-bold">
+                      <span className="mt-3 bg-[#E8520D]/10 text-[#E8520D] border border-[#E8520D]/30 px-4 py-1.5 rounded-full text-sm font-bold">
                         {lang === 'ar' ? 'خصم' : 'Save'} {tier.discountPercent}%
                       </span>
                     )}
@@ -203,7 +203,7 @@ export default function Pricing({ lang }: PricingProps) {
                 <ul className="space-y-3 mb-8 border-t border-white/5 pt-6 flex-grow">
                   {feats.map((feat) => (
                     <li key={feat} className="flex items-center gap-3 text-white/65 text-sm">
-                      <span className="w-5 h-5 rounded-full bg-[#FF5500]/15 flex items-center justify-center shrink-0">
+                      <span className="w-5 h-5 rounded-full bg-[#E8520D]/15 flex items-center justify-center shrink-0">
                         <Check className="w-3 h-3 text-primary" />
                       </span>
                       <span>{feat}</span>
@@ -219,8 +219,8 @@ export default function Pricing({ lang }: PricingProps) {
                       rel="noopener noreferrer"
                       className={`block text-center w-full py-4 rounded-xl font-black text-lg transition-all hover:scale-105
                         ${tier.popular
-                          ? 'bg-primary text-white shadow-[0_0_20px_rgba(255,85,0,0.4)] hover:shadow-[0_0_30px_rgba(255,85,0,0.8)]'
-                          : 'bg-transparent text-white border-2 border-white/30 hover:border-white hover:bg-white hover:text-[#111111]'
+                          ? 'bg-primary text-white shadow-[0_0_20px_rgba(232, 82, 13, 0.4)] hover:shadow-[0_0_30px_rgba(232, 82, 13, 0.8)]'
+                          : 'bg-transparent text-white border-2 border-white/30 hover:border-white hover:bg-white hover:text-[#0d0c0b]'
                         }`}
                     >
                       {tier.cta}
@@ -234,14 +234,14 @@ export default function Pricing({ lang }: PricingProps) {
           {/* Mobile scroll arrows */}
           <button
             onClick={() => scroll(lang === 'ar' ? 'right' : 'left')}
-            className="absolute left-1 top-1/2 -translate-y-1/2 p-2.5 bg-black/50 backdrop-blur-md rounded-full text-white border border-white/10 hover:bg-[#FF5500] hover:border-[#FF5500] transition-colors lg:hidden z-20 shadow-lg pointer-events-auto active:scale-95"
+            className="absolute left-1 top-1/2 -translate-y-1/2 p-2.5 bg-black/50 backdrop-blur-md rounded-full text-white border border-white/10 hover:bg-[#E8520D] hover:border-[#E8520D] transition-colors lg:hidden z-20 shadow-lg pointer-events-auto active:scale-95"
             aria-label="Previous"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
           <button
             onClick={() => scroll(lang === 'ar' ? 'left' : 'right')}
-            className="absolute right-1 top-1/2 -translate-y-1/2 p-2.5 bg-black/50 backdrop-blur-md rounded-full text-white border border-white/10 hover:bg-[#FF5500] hover:border-[#FF5500] transition-colors lg:hidden z-20 shadow-lg pointer-events-auto active:scale-95"
+            className="absolute right-1 top-1/2 -translate-y-1/2 p-2.5 bg-black/50 backdrop-blur-md rounded-full text-white border border-white/10 hover:bg-[#E8520D] hover:border-[#E8520D] transition-colors lg:hidden z-20 shadow-lg pointer-events-auto active:scale-95"
             aria-label="Next"
           >
             <ChevronRight className="w-6 h-6" />

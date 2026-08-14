@@ -105,7 +105,7 @@ export default function FAQ({ lang }: FAQProps) {
   const t = content[lang];
 
   return (
-    <section className="py-24 relative bg-[#050505] min-h-screen flex items-center">
+    <section className="py-24 relative bg-[#080706] min-h-screen flex items-center">
       <div className="container mx-auto px-4 md:px-8 max-w-4xl">
         
         <motion.div 

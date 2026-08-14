@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -9,7 +9,8 @@ import {
   browserSessionPersistence,
   type User as FirebaseUser,
 } from 'firebase/auth';
-import { auth } from './firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { auth, db } from './firebase';
 import { getUserMapping, setCoachMapping } from './firestore';
 import type { UserRole } from './types';
 
@@ -18,6 +19,7 @@ export interface AuthUser {
   email: string;
   role: UserRole;
   clientId?: string;
+  isLocked?: boolean;
 }
 
 interface AuthContextValue {
@@ -33,53 +35,111 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  // Ref to the real-time Firestore unsubscribe so we can clean it up on sign-out
+  const lockListenerUnsub = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+      // Clean up any previous real-time lock listener
+      if (lockListenerUnsub.current) {
+        lockListenerUnsub.current();
+        lockListenerUnsub.current = null;
+      }
+
       if (!firebaseUser) {
         setCurrentUser(null);
         setIsLoading(false);
         return;
       }
+
+      // Force-refresh the ID token to detect revoked sessions immediately.
+      // If revokeRefreshTokens() was called server-side, getIdToken(true) will throw.
+      try {
+        await firebaseUser.getIdToken(true);
+      } catch {
+        // Token is revoked — sign out silently and show the login page
+        await firebaseSignOut(auth);
+        setCurrentUser(null);
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const mapping = await getUserMapping(firebaseUser.uid);
         if (mapping) {
+          // Set user immediately so the UI can render
           setCurrentUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email || '',
             role: mapping.role,
             clientId: mapping.clientId,
+            isLocked: false,
           });
+
+          // For clients: start a REAL-TIME listener on their Firestore doc.
+          // The moment the coach locks the account (isLocked = true) or the
+          // subscription expires, this snapshot fires and the client's UI
+          // instantly shows the locked screen — no token expiry wait needed.
+          if (mapping.role === 'client' && mapping.clientId) {
+            const clientDocRef = doc(db, 'clients', mapping.clientId);
+            lockListenerUnsub.current = onSnapshot(
+              clientDocRef,
+              (snap) => {
+                if (snap.exists()) {
+                  const data = snap.data();
+                  const isManuallyLocked = data?.isLocked === true;
+                  
+                  // Also check if subscription has expired (endDate < today)
+                  let isExpired = false;
+                  if (data?.endDate) {
+                    const today = new Date().toISOString().slice(0, 10);
+                    isExpired = data.endDate < today;
+                  }
+                  
+                  setCurrentUser((prev) => {
+                    if (!prev) return prev;
+                    return { ...prev, isLocked: isManuallyLocked || isExpired };
+                  });
+                }
+              },
+              () => {
+                // Silently ignore snapshot errors (e.g. permission denied after lock)
+              }
+            );
+          }
         } else {
           // No mapping — only treat the specific coach email as a coach.
-          // Coach email is read from env to avoid hardcoding it in the bundle.
           const COACH_EMAIL = import.meta.env.VITE_COACH_EMAIL?.toLowerCase();
           const isCoachEmail = COACH_EMAIL
             ? firebaseUser.email?.toLowerCase() === COACH_EMAIL
             : false;
           const assignedRole = isCoachEmail ? 'coach' : 'client';
-          
+
           setCurrentUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email || '',
             role: assignedRole,
           });
-          
+
           // Auto-heal only for the coach
           if (isCoachEmail) {
             setCoachMapping(firebaseUser.uid).catch(err => {
-              console.error("Auto-initializing coach mapping failed:", err);
+              console.error('Auto-initializing coach mapping failed:', err);
             });
           }
         }
       } catch (err) {
-        console.error("Error fetching user mapping:", err);
+        console.error('Error fetching user mapping:', err);
         setCurrentUser(null);
       } finally {
         setIsLoading(false);
       }
     });
-    return unsub;
+
+    return () => {
+      unsub();
+      if (lockListenerUnsub.current) lockListenerUnsub.current();
+    };
   }, []);
 
   async function login(email: string, password: string, remember: boolean = true) {
@@ -101,7 +161,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function createClientAccount(email: string, password: string, _clientId: string) {
-    // We save the mapping in AdminPanel after this succeeds
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       return { ok: true };
@@ -117,6 +176,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
+    if (lockListenerUnsub.current) {
+      lockListenerUnsub.current();
+      lockListenerUnsub.current = null;
+    }
     await firebaseSignOut(auth);
     setCurrentUser(null);
   }

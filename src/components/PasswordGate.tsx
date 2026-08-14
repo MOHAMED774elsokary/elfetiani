@@ -37,18 +37,18 @@ export default function PasswordGate({ children }: PasswordGateProps) {
     <div className="min-h-screen bg-[#030303] flex items-center justify-center px-6 relative overflow-hidden" dir="ltr">
       {/* Ambient glow */}
       <div className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(255,85,0,0.07) 0%, transparent 70%)' }} />
+        style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(232, 82, 13, 0.07) 0%, transparent 70%)' }} />
 
       {/* Top/bottom lines */}
       <div className="absolute top-0 inset-x-0 h-px"
-        style={{ background: 'linear-gradient(90deg, transparent, #FF5500 50%, transparent)' }} />
+        style={{ background: 'linear-gradient(90deg, transparent, #E8520D 50%, transparent)' }} />
       <div className="absolute bottom-0 inset-x-0 h-px"
-        style={{ background: 'linear-gradient(90deg, transparent, #FF5500 50%, transparent)' }} />
+        style={{ background: 'linear-gradient(90deg, transparent, #E8520D 50%, transparent)' }} />
 
       {/* Corner brackets */}
       {['top-6 left-6 border-t-2 border-l-2','top-6 right-6 border-t-2 border-r-2',
         'bottom-6 left-6 border-b-2 border-l-2','bottom-6 right-6 border-b-2 border-r-2'].map((c,i) => (
-        <div key={i} className={`absolute w-6 h-6 ${c} border-[#FF5500]/30`} />
+        <div key={i} className={`absolute w-6 h-6 ${c} border-[#E8520D]/30`} />
       ))}
 
       <motion.div
@@ -61,16 +61,16 @@ export default function PasswordGate({ children }: PasswordGateProps) {
           <motion.div
             initial={{ scale: 0 }} animate={{ scale: 1 }}
             transition={{ type: 'spring', stiffness: 200, delay: 0.1 }}
-            className="w-16 h-16 rounded-2xl bg-[#FF5500]/10 border border-[#FF5500]/20 flex items-center justify-center mx-auto mb-6"
+            className="w-16 h-16 rounded-2xl bg-[#E8520D]/10 border border-[#E8520D]/20 flex items-center justify-center mx-auto mb-6"
           >
-            <Lock className="w-7 h-7 text-[#FF5500]" />
+            <Lock className="w-7 h-7 text-[#E8520D]" />
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="text-3xl font-black text-white mb-2"
           >
-            EL FETIANI <span className="text-[#FF5500]">COACHING</span>
+            EL FETIANI <span className="text-[#E8520D]">COACHING</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
@@ -97,7 +97,7 @@ export default function PasswordGate({ children }: PasswordGateProps) {
               onChange={e => { setInput(e.target.value); setError(false); }}
               onKeyDown={e => e.key === 'Enter' && attempt()}
               placeholder="Enter password..."
-              className="w-full bg-[#070707] border border-white/10 rounded-xl px-4 py-4 pr-12 text-white font-medium placeholder:text-white/15 focus:outline-none focus:border-[#FF5500]/60 focus:shadow-[0_0_0_3px_rgba(255,85,0,0.1)] transition-all duration-300"
+              className="w-full bg-[#0a0908] border border-white/10 rounded-xl px-4 py-4 pr-12 text-white font-medium placeholder:text-white/15 focus:outline-none focus:border-[#E8520D]/60 focus:shadow-[0_0_0_3px_rgba(232, 82, 13, 0.1)] transition-all duration-300"
             />
             <button type="button" onClick={() => setShow(s => !s)}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
@@ -119,9 +119,9 @@ export default function PasswordGate({ children }: PasswordGateProps) {
 
           <motion.button
             onClick={attempt}
-            whileHover={{ scale: 1.02, boxShadow: '0 0 25px rgba(255,85,0,0.3)' }}
+            whileHover={{ scale: 1.02, boxShadow: '0 0 25px rgba(232, 82, 13, 0.3)' }}
             whileTap={{ scale: 0.97 }}
-            className="w-full py-4 bg-[#FF5500] text-white font-black text-lg rounded-xl flex items-center justify-center gap-2 relative overflow-hidden group"
+            className="w-full py-4 bg-[#E8520D] text-white font-black text-lg rounded-xl flex items-center justify-center gap-2 relative overflow-hidden group"
           >
             <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
             <ShieldCheck className="w-5 h-5 relative" />

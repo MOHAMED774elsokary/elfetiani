@@ -41,7 +41,7 @@ export default function Footer({ lang }: FooterProps) {
   const t = content[lang];
 
   return (
-    <footer className="relative bg-[#050505] border-t border-white/5 pt-20 pb-10 overflow-hidden">
+    <footer className="relative bg-[#080706] border-t border-white/5 pt-20 pb-10 overflow-hidden">
       
 
 
@@ -63,7 +63,7 @@ export default function Footer({ lang }: FooterProps) {
             
             {/* Social Icons */}
             <div className="flex items-center justify-end gap-4 mt-6">
-              <motion.a href="https://www.instagram.com/_elfetyani_/" target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.2 }} className="text-gray-400 hover:text-[#FF5500] transition-colors">
+              <motion.a href="https://www.instagram.com/_elfetyani_/" target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.2 }} className="text-gray-400 hover:text-[#E8520D] transition-colors">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
               </motion.a>
               <motion.a 
@@ -86,7 +86,7 @@ export default function Footer({ lang }: FooterProps) {
             transition={{ duration: 0.7, delay: 0.1 }}
             className="text-end"
           >
-            <h4 className="text-white font-black text-lg mb-6 text-[#FF5500]">
+            <h4 className="text-white font-black text-lg mb-6 text-[#E8520D]">
               {lang === 'ar' ? 'روابط سريعة' : 'Quick Links'}
             </h4>
             <ul className="space-y-3">
@@ -108,7 +108,7 @@ export default function Footer({ lang }: FooterProps) {
             transition={{ duration: 0.7, delay: 0.2 }}
             className="text-end"
           >
-            <h4 className="text-white font-black text-lg mb-6 text-[#FF5500]">
+            <h4 className="text-white font-black text-lg mb-6 text-[#E8520D]">
               {lang === 'ar' ? 'جاهز تبدأ؟' : 'Ready to Start?'}
             </h4>
             <p className="text-gray-400 text-sm mb-6 font-medium">
@@ -120,9 +120,9 @@ export default function Footer({ lang }: FooterProps) {
               href={`https://wa.me/${WA_NUMBER}`}
               target="_blank"
               rel="noopener noreferrer"
-              whileHover={{ scale: 1.05, boxShadow: "0 0 25px rgba(255,85,0,0.4)" }}
+              whileHover={{ scale: 1.05, boxShadow: "0 0 25px rgba(232, 82, 13, 0.4)" }}
               whileTap={{ scale: 0.97 }}
-              className="inline-flex items-center gap-2 bg-[#FF5500] text-white font-bold px-6 py-3 rounded-lg transition-all"
+              className="inline-flex items-center gap-2 bg-[#E8520D] text-white font-bold px-6 py-3 rounded-lg transition-all"
             >
               <Zap className="w-4 h-4" />
               {t.cta}
@@ -136,13 +136,13 @@ export default function Footer({ lang }: FooterProps) {
           <p>© {new Date().getFullYear()} {t.tagline} — {t.copy}</p>
           <div className="flex items-center gap-6">
             <p className="flex items-center gap-1">
-              {t.made} <Heart className="w-3 h-3 text-[#FF5500] fill-[#FF5500]" /> الفتياني
+              {t.made} <Heart className="w-3 h-3 text-[#E8520D] fill-[#E8520D]" /> الفتياني
             </p>
             <motion.button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               whileHover={{ scale: 1.1, y: -2 }}
               whileTap={{ scale: 0.95 }}
-              className="w-9 h-9 rounded-full bg-white/5 border border-white/10 hover:bg-[#FF5500] hover:border-[#FF5500] flex items-center justify-center transition-colors duration-300"
+              className="w-9 h-9 rounded-full bg-white/5 border border-white/10 hover:bg-[#E8520D] hover:border-[#E8520D] flex items-center justify-center transition-colors duration-300"
             >
               <ArrowUp className="w-4 h-4" />
             </motion.button>

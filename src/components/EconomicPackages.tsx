@@ -11,19 +11,19 @@ interface EconomicPackagesProps {
 const WA_NUMBER = '201015140099';
 
 const features = [
-  { text: 'برنامج غذائي محسوب حسب هدفك', vip: false },
-  { text: 'برنامج تدريبي مخصص لك', vip: false },
-  { text: 'منصة تجمع التمارين الخاصة بك', vip: false },
-  { text: 'متابعة الأوزان والتقدم', vip: false },
-  { text: 'كل شيء متجمع في منصة واحدة', vip: false },
-  { text: 'متابعة كل أسبوعين', vip: false },
-  { text: 'استلام البرنامج خلال يومين', vip: false },
+  { text: 'نظام غذائي مدروس حسب هدفك الأساسي', vip: false },
+  { text: 'جدول تدريبي مناسب لمستواك', vip: false },
+  { text: 'وصول كامل لمنصة التمارين', vip: false },
+  { text: 'متابعة أساسية للأوزان والقياسات', vip: false },
+  { text: 'كل ما تحتاجه في مكان واحد', vip: false },
+  { text: 'تقييم وتحديث للخطة كل أسبوعين', vip: false },
+  { text: 'استلام البرنامج خلال ٤٨ ساعة', vip: false },
 ];
 
 const plans = [
   { id: 'eco-1m', name: 'الخطة الشهرية',  price: '400',  fakePrice: null,   unit: 'شهر',    popular: false },
-  { id: 'eco-3m', name: 'خطة 3 شهور',     price: '800',  fakePrice: '1200', unit: '3 شهور', popular: true  },
-  { id: 'eco-6m', name: 'خطة 6 شهور',     price: '1500', fakePrice: '2400', unit: '6 شهور', popular: false },
+  { id: 'eco-3m', name: 'خطة 3 شهور',     price: '950',  fakePrice: '1200', unit: '3 شهور', popular: true  },
+  { id: 'eco-6m', name: 'خطة 6 شهور',     price: '1900', fakePrice: '2400', unit: '6 شهور', popular: false },
 ];
 
 export default function EconomicPackages({ lang }: EconomicPackagesProps) {
@@ -42,13 +42,13 @@ export default function EconomicPackages({ lang }: EconomicPackagesProps) {
       : `Hello, I'd like to subscribe to the Economic Package – ${planName}`;
 
   return (
-    <section id="economic-packages" className="py-24 bg-[#070707] relative z-10 overflow-hidden">
+    <section id="economic-packages" className="py-24 bg-[#0a0908] relative z-10 overflow-hidden">
       {/* Ambient glow top */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255,85,0,0.06) 0%, transparent 70%)',
+            'radial-gradient(ellipse 60% 40% at 50% 0%, rgba(232, 82, 13, 0.06) 0%, transparent 70%)',
         }}
       />
 
@@ -82,10 +82,10 @@ export default function EconomicPackages({ lang }: EconomicPackagesProps) {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.15 }}
                 viewport={{ once: true }}
-                className={`bg-[#111111] rounded-3xl p-8 lg:p-10 relative flex flex-col shrink-0 w-[85vw] sm:w-[400px] lg:w-auto snap-center border transition-colors duration-500
+                className={`bg-[#0d0c0b] rounded-3xl p-8 lg:p-10 relative flex flex-col shrink-0 w-[85vw] sm:w-[400px] lg:w-auto snap-center border transition-colors duration-500
                   ${plan.popular
-                    ? 'border-[#FF5500]/40 shadow-[0_0_40px_rgba(255,85,0,0.12)]'
-                    : 'border-white/5 hover:border-[#FF5500]/30'
+                    ? 'border-[#E8520D]/40 shadow-[0_0_40px_rgba(232, 82, 13, 0.12)]'
+                    : 'border-white/5 hover:border-[#E8520D]/30'
                   }`}
               >
                 {/* Popular badge */}
@@ -109,13 +109,13 @@ export default function EconomicPackages({ lang }: EconomicPackagesProps) {
                         {plan.fakePrice} <span className="text-sm">ج.م</span>
                       </span>
                     )}
-                    <span className="text-5xl font-black text-primary drop-shadow-[0_0_20px_rgba(255,85,0,0.4)] mt-1">
+                    <span className="text-5xl font-black text-primary drop-shadow-[0_0_20px_rgba(232, 82, 13, 0.4)] mt-1">
                       {plan.price}{' '}
                       <span className="text-xl text-white/50">ج.م</span>
                     </span>
                     <span className="text-white/35 text-sm mt-1">/ {plan.unit}</span>
                     {plan.fakePrice && (
-                      <span className="mt-3 bg-[#FF5500]/10 text-[#FF5500] border border-[#FF5500]/30 px-4 py-1.5 rounded-full text-sm font-bold">
+                      <span className="mt-3 bg-[#E8520D]/10 text-[#E8520D] border border-[#E8520D]/30 px-4 py-1.5 rounded-full text-sm font-bold">
                         وفّر{' '}
                         {Math.round(
                           ((parseInt(plan.fakePrice) - parseInt(plan.price)) /
@@ -132,7 +132,7 @@ export default function EconomicPackages({ lang }: EconomicPackagesProps) {
                 <ul className="space-y-3 mb-8 border-t border-white/5 pt-6 flex-grow">
                   {features.map((feat) => (
                     <li key={feat.text} className="flex items-center gap-3 text-white/65 text-sm">
-                      <span className="w-5 h-5 rounded-full bg-[#FF5500]/15 flex items-center justify-center shrink-0">
+                      <span className="w-5 h-5 rounded-full bg-[#E8520D]/15 flex items-center justify-center shrink-0">
                         <Check className="w-3 h-3 text-primary" />
                       </span>
                       <span>{feat.text}</span>
@@ -149,8 +149,8 @@ export default function EconomicPackages({ lang }: EconomicPackagesProps) {
                       rel="noopener noreferrer"
                       className={`block text-center w-full py-4 rounded-xl font-black text-lg transition-all hover:scale-105
                         ${plan.popular
-                          ? 'bg-primary text-white shadow-[0_0_20px_rgba(255,85,0,0.4)] hover:shadow-[0_0_30px_rgba(255,85,0,0.8)]'
-                          : 'bg-transparent text-white border-2 border-white/30 hover:border-white hover:bg-white hover:text-[#111111]'
+                          ? 'bg-primary text-white shadow-[0_0_20px_rgba(232, 82, 13, 0.4)] hover:shadow-[0_0_30px_rgba(232, 82, 13, 0.8)]'
+                          : 'bg-transparent text-white border-2 border-white/30 hover:border-white hover:bg-white hover:text-[#0d0c0b]'
                         }`}
                     >
                       اشترك الآن
@@ -164,14 +164,14 @@ export default function EconomicPackages({ lang }: EconomicPackagesProps) {
           {/* Mobile scroll arrows */}
           <button
             onClick={() => scroll(lang === 'ar' ? 'right' : 'left')}
-            className="absolute left-1 top-1/2 -translate-y-1/2 p-2.5 bg-black/50 backdrop-blur-md rounded-full text-white border border-white/10 hover:bg-[#FF5500] hover:border-[#FF5500] transition-colors lg:hidden z-20 shadow-lg active:scale-95"
+            className="absolute left-1 top-1/2 -translate-y-1/2 p-2.5 bg-black/50 backdrop-blur-md rounded-full text-white border border-white/10 hover:bg-[#E8520D] hover:border-[#E8520D] transition-colors lg:hidden z-20 shadow-lg active:scale-95"
             aria-label="Previous"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
           <button
             onClick={() => scroll(lang === 'ar' ? 'left' : 'right')}
-            className="absolute right-1 top-1/2 -translate-y-1/2 p-2.5 bg-black/50 backdrop-blur-md rounded-full text-white border border-white/10 hover:bg-[#FF5500] hover:border-[#FF5500] transition-colors lg:hidden z-20 shadow-lg active:scale-95"
+            className="absolute right-1 top-1/2 -translate-y-1/2 p-2.5 bg-black/50 backdrop-blur-md rounded-full text-white border border-white/10 hover:bg-[#E8520D] hover:border-[#E8520D] transition-colors lg:hidden z-20 shadow-lg active:scale-95"
             aria-label="Next"
           >
             <ChevronRight className="w-6 h-6" />

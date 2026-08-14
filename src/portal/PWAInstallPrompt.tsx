@@ -92,13 +92,13 @@ export default function PWAInstallPrompt() {
 
             <div className="flex items-start gap-4">
               {/* App Icon */}
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FF5500] to-[#FF3300] flex items-center justify-center font-black text-white text-lg shadow-[0_0_20px_rgba(255,85,0,0.3)] flex-shrink-0">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#E8520D] to-[#FF3300] flex items-center justify-center font-black text-white text-lg shadow-[0_0_20px_rgba(232, 82, 13, 0.3)] flex-shrink-0">
                 F
               </div>
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <Smartphone size={14} className="text-[#FF5500]" />
+                  <Smartphone size={14} className="text-[#E8520D]" />
                   <h3 className="font-black text-sm">حمّل التطبيق</h3>
                 </div>
                 <p className="text-white/50 text-xs leading-relaxed mb-3">
@@ -106,7 +106,7 @@ export default function PWAInstallPrompt() {
                 </p>
                 <button
                   onClick={handleInstall}
-                  className="w-full flex items-center justify-center gap-2 bg-[#FF5500] hover:bg-[#FF6620] text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow-[0_6px_16px_rgba(255,85,0,0.25)] active:scale-[0.97]"
+                  className="w-full flex items-center justify-center gap-2 bg-[#E8520D] hover:bg-[#C9440A] text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow-[0_6px_16px_rgba(232, 82, 13, 0.25)] active:scale-[0.97]"
                 >
                   <Download size={16} />
                   تثبيت التطبيق

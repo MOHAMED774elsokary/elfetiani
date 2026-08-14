@@ -42,7 +42,7 @@ export default function CustomCursor() {
       <motion.div
         className="fixed top-0 left-0 w-[600px] h-[600px] rounded-full pointer-events-none blur-[120px] mix-blend-screen z-10 opacity-70"
         style={{
-          background: 'radial-gradient(circle, rgba(255,85,0,0.6) 0%, rgba(150,0,255,0.3) 40%, transparent 80%)',
+          background: 'radial-gradient(circle, rgba(232, 82, 13, 0.6) 0%, rgba(150,0,255,0.3) 40%, transparent 80%)',
           x: outerXSpring,
           y: outerYSpring,
           translateX: '-50%',
@@ -63,7 +63,7 @@ export default function CustomCursor() {
 
       {/* Inner Hyper-fast Glowing Dot */}
       <motion.div
-        className="fixed top-0 left-0 w-2.5 h-2.5 bg-white rounded-full pointer-events-none z-[9999] shadow-[0_0_15px_#FF5500]"
+        className="fixed top-0 left-0 w-2.5 h-2.5 bg-white rounded-full pointer-events-none z-[9999] shadow-[0_0_15px_#E8520D]"
         style={{
           x: cursorXSpring,
           y: cursorYSpring,

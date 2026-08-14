@@ -36,10 +36,10 @@ export default function About({ lang }: AboutProps) {
   const isRtl = lang === 'ar';
 
   return (
-    <section id="about" className="py-24 relative bg-[#050505] overflow-hidden" ref={ref}>
+    <section id="about" className="py-24 relative bg-[#080706] overflow-hidden" ref={ref}>
       {/* Ambient glow */}
       <div className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 60% 40% at 30% 50%, rgba(255,85,0,0.05) 0%, transparent 70%)' }} />
+        style={{ background: 'radial-gradient(ellipse 60% 40% at 30% 50%, rgba(232, 82, 13, 0.05) 0%, transparent 70%)' }} />
 
       <div className="container mx-auto px-4 md:px-8 max-w-7xl">
         <div className={`grid grid-cols-1 lg:grid-cols-2 gap-16 items-center ${isRtl ? 'lg:flex-row-reverse' : ''}`}>
@@ -55,15 +55,19 @@ export default function About({ lang }: AboutProps) {
               <img
                 src="/fet,jpg.jpeg"
                 alt={t.name}
+                width="400"
+                height="500"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover object-top"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#050505]/80 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#080706]/80 via-transparent to-transparent" />
 
               {/* Name badge on photo */}
               <div className="absolute bottom-6 left-6 right-6">
                 <div className="bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl px-5 py-3">
                   <p className="text-white font-black text-lg">{t.name}</p>
-                  <p className="text-[#FF5500] font-bold text-sm">{t.title}</p>
+                  <p className="text-[#E8520D] font-bold text-sm">{t.title}</p>
                 </div>
               </div>
             </div>
@@ -71,7 +75,7 @@ export default function About({ lang }: AboutProps) {
 
 
             {/* Orange corner accent */}
-            <div className={`absolute -bottom-4 ${isRtl ? '-right-4' : '-left-4'} w-24 h-24 border-b-4 border-[#FF5500] ${isRtl ? 'border-r-4' : 'border-l-4'} rounded-bl-3xl opacity-30 hidden sm:block`} />
+            <div className={`absolute -bottom-4 ${isRtl ? '-right-4' : '-left-4'} w-24 h-24 border-b-4 border-[#E8520D] ${isRtl ? 'border-r-4' : 'border-l-4'} rounded-bl-3xl opacity-30 hidden sm:block`} />
           </motion.div>
 
           {/* Text side */}
@@ -87,7 +91,7 @@ export default function About({ lang }: AboutProps) {
               initial={{ opacity: 0, y: 16 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.2 }}
-              className={`inline-flex items-center gap-2 bg-[#FF5500]/10 border border-[#FF5500]/30 text-[#FF5500] px-4 py-2 rounded-full text-sm font-bold mb-6 ${isRtl ? 'flex-row-reverse' : ''}`}
+              className={`inline-flex items-center gap-2 bg-[#E8520D]/10 border border-[#E8520D]/30 text-[#E8520D] px-4 py-2 rounded-full text-sm font-bold mb-6 ${isRtl ? 'flex-row-reverse' : ''}`}
             >
               <Zap className="w-3.5 h-3.5" />
               {t.tag}
@@ -115,9 +119,9 @@ export default function About({ lang }: AboutProps) {
 
             <motion.a
               href="#pricing"
-              whileHover={{ scale: 1.04, boxShadow: '0 0 28px rgba(255,85,0,0.4)' }}
+              whileHover={{ scale: 1.04, boxShadow: '0 0 28px rgba(232, 82, 13, 0.4)' }}
               whileTap={{ scale: 0.97 }}
-              className="inline-flex items-center gap-2 bg-[#FF5500] text-white font-black text-lg px-8 py-4 rounded-xl relative overflow-hidden group"
+              className="inline-flex items-center gap-2 bg-[#E8520D] text-white font-black text-lg px-8 py-4 rounded-xl relative overflow-hidden group"
             >
               <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
               <Zap className="w-5 h-5 relative" />

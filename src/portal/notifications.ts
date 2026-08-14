@@ -303,7 +303,7 @@ export async function notifyWorkoutAssigned(clientUid: string, clientName: strin
   await createNotification(
     clientUid,
     'workout_assigned',
-    'تم تحديث التمارين 💪',
+    'تم تحديث التمارين',
     `تم تحديث برنامج التمارين الخاص بك، ${clientName}`,
     { clientId: clientUid },
   );
@@ -313,7 +313,7 @@ export async function notifyNutritionUpdated(clientUid: string, clientName: stri
   await createNotification(
     clientUid,
     'nutrition_updated',
-    'تم تحديث التغذية 🥗',
+    'تم تحديث التغذية',
     `تم تحديث خطة التغذية الخاصة بك، ${clientName}`,
     { clientId: clientUid },
   );
@@ -346,7 +346,7 @@ export async function notifyChatMessage(
   await createNotification(
     recipientUid,
     'chat_message',
-    `رسالة من ${senderName} 💬`,
+    `رسالة من ${senderName}`,
     messagePreview.length > 100 ? messagePreview.substring(0, 100) + '...' : messagePreview,
   );
 }

@@ -83,12 +83,12 @@ export default function Services({ lang }: ServicesProps) {
   const t = content[lang];
 
   return (
-    <section id="services" className="py-24 relative bg-[#050505] overflow-hidden" ref={sectionRef}>
+    <section id="services" className="py-24 relative bg-[#080706] overflow-hidden" ref={sectionRef}>
       
       {/* Floating ambient background */}
       <motion.div 
         style={{ y: bgY }}
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#FF5500]/5 blur-[100px] rounded-full pointer-events-none"
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#E8520D]/5 blur-[100px] rounded-full pointer-events-none"
       />
 
       <div className="container mx-auto px-4 md:px-8 relative z-10">
@@ -102,7 +102,7 @@ export default function Services({ lang }: ServicesProps) {
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-4 text-glow">
             {t.title}
           </h2>
-          <div className="w-16 h-1 bg-[#FF5500] mx-auto rounded-full mt-4 shadow-[0_0_10px_rgba(255,85,0,0.6)]" />
+          <div className="w-16 h-1 bg-[#E8520D] mx-auto rounded-full mt-4 shadow-[0_0_10px_rgba(232, 82, 13, 0.6)]" />
         </motion.div>
 
         <div className="relative group/carousel">
@@ -113,7 +113,7 @@ export default function Services({ lang }: ServicesProps) {
                 initial={{ opacity: 0, y: 50 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.7, delay: index * 0.15 }}
-                className="flex-shrink-0 w-[85vw] sm:w-[45vw] lg:w-auto snap-center bg-[#111111] rounded-2xl overflow-hidden flex flex-col group h-full border border-white/5 hover:border-[#FF5500]/30 transition-colors duration-500 cursor-pointer"
+                className="flex-shrink-0 w-[85vw] sm:w-[45vw] lg:w-auto snap-center bg-[#0d0c0b] rounded-2xl overflow-hidden flex flex-col group h-full border border-white/5 hover:border-[#E8520D]/30 transition-colors duration-500 cursor-pointer"
               >
                 {/* Image Zone */}
                 <div className="h-64 overflow-hidden relative">
@@ -124,7 +124,7 @@ export default function Services({ lang }: ServicesProps) {
                     className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
                   />
                   {/* Top orange glow reveal on hover */}
-                  <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-[#FF5500] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20" />
+                  <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-[#E8520D] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20" />
                 </div>
                 
                 {/* Content */}
@@ -139,7 +139,7 @@ export default function Services({ lang }: ServicesProps) {
                 
                 {/* Bottom progress bar animation on hover */}
                 <div className="h-[2px] bg-white/5 mx-6 mb-6 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#FF5500] w-0 group-hover:w-full transition-all duration-700 ease-out rounded-full shadow-[0_0_8px_rgba(255,85,0,0.6)]" />
+                  <div className="h-full bg-[#E8520D] w-0 group-hover:w-full transition-all duration-700 ease-out rounded-full shadow-[0_0_8px_rgba(232, 82, 13, 0.6)]" />
                 </div>
 
               </motion.div>
@@ -147,11 +147,11 @@ export default function Services({ lang }: ServicesProps) {
           </div>
 
           {/* Swipe indicator arrows overlaid on images (Mobile only) */}
-          <button onClick={() => scroll('left')} className="absolute left-1 top-32 -translate-y-1/2 p-2.5 bg-black/50 backdrop-blur-md rounded-full text-white border border-white/10 hover:bg-[#FF5500] hover:border-[#FF5500] transition-colors lg:hidden z-20 shadow-lg pointer-events-auto">
+          <button onClick={() => scroll('left')} className="absolute left-1 top-32 -translate-y-1/2 p-2.5 bg-black/50 backdrop-blur-md rounded-full text-white border border-white/10 hover:bg-[#E8520D] hover:border-[#E8520D] transition-colors lg:hidden z-20 shadow-lg pointer-events-auto">
             <ChevronLeft className="w-6 h-6" />
           </button>
           
-          <button onClick={() => scroll('right')} className="absolute right-1 top-32 -translate-y-1/2 p-2.5 bg-black/50 backdrop-blur-md rounded-full text-white border border-white/10 hover:bg-[#FF5500] hover:border-[#FF5500] transition-colors lg:hidden z-20 shadow-lg pointer-events-auto">
+          <button onClick={() => scroll('right')} className="absolute right-1 top-32 -translate-y-1/2 p-2.5 bg-black/50 backdrop-blur-md rounded-full text-white border border-white/10 hover:bg-[#E8520D] hover:border-[#E8520D] transition-colors lg:hidden z-20 shadow-lg pointer-events-auto">
             <ChevronRight className="w-6 h-6" />
           </button>
         </div>

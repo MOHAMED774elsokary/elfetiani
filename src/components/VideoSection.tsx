@@ -37,11 +37,11 @@ export default function VideoSection({ lang }: VideoSectionProps) {
   };
 
   return (
-    <section className="py-24 relative bg-[#050505] overflow-hidden" ref={sectionRef}>
+    <section className="py-24 relative bg-[#080706] overflow-hidden" ref={sectionRef}>
       
       {/* Ambient background glow */}
       <motion.div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-[#FF5500]/8 blur-[120px] rounded-full pointer-events-none"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-[#E8520D]/8 blur-[120px] rounded-full pointer-events-none"
         style={{ opacity: glowOpacity }}
       />
       
@@ -57,7 +57,7 @@ export default function VideoSection({ lang }: VideoSectionProps) {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="flex justify-center mb-8"
         >
-          <div className="flex items-center gap-2 bg-[#FF5500]/10 border border-[#FF5500]/30 text-[#FF5500] px-4 py-2 rounded-full text-sm font-bold">
+          <div className="flex items-center gap-2 bg-[#E8520D]/10 border border-[#E8520D]/30 text-[#E8520D] px-4 py-2 rounded-full text-sm font-bold">
             <Zap className="w-4 h-4" />
             <span>{t[lang].tag}</span>
           </div>
@@ -87,16 +87,20 @@ export default function VideoSection({ lang }: VideoSectionProps) {
           
           <img 
             src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80" 
-            alt="Video Thumbnail" 
+            alt="Video Thumbnail - Online Coaching"
+            width="1600"
+            height="900"
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover opacity-70 transition-all duration-700 group-hover:opacity-90 group-hover:scale-105"
           />
 
           {/* Gradient overlays */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050505]/80 via-transparent to-[#050505]/40 z-10 pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/30 via-transparent to-[#050505]/30 z-10 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#080706]/80 via-transparent to-[#080706]/40 z-10 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#080706]/30 via-transparent to-[#080706]/30 z-10 pointer-events-none" />
 
           {/* Hover glow ring */}
-          <div className="absolute inset-0 rounded-3xl border-2 border-[#FF5500]/0 group-hover:border-[#FF5500]/30 transition-all duration-700 z-20 pointer-events-none" />
+          <div className="absolute inset-0 rounded-3xl border-2 border-[#E8520D]/0 group-hover:border-[#E8520D]/30 transition-all duration-700 z-20 pointer-events-none" />
 
           {/* Center Play Button */}
           <motion.div 
@@ -124,7 +128,7 @@ export default function VideoSection({ lang }: VideoSectionProps) {
             transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut" }}
             className="absolute bottom-8 left-8 z-30"
           >
-            <div className="bg-[#FF5500] text-white font-black text-2xl md:text-4xl px-6 py-4 rounded-2xl rounded-bl-none shadow-[0_10px_40px_rgba(255,85,0,0.5)] border border-white/10 backdrop-blur-sm">
+            <div className="bg-[#E8520D] text-white font-black text-2xl md:text-4xl px-6 py-4 rounded-2xl rounded-bl-none shadow-[0_10px_40px_rgba(232, 82, 13, 0.5)] border border-white/10 backdrop-blur-sm">
               {t[lang].bubble}
             </div>
           </motion.div>

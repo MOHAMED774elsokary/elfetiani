@@ -58,7 +58,11 @@ export default function WhatsAppFloat({ lang }: { lang: Language }) {
                 <p className="text-white font-black text-sm">{c.name}</p>
                 <p className="text-white/80 text-xs font-medium">{c.status}</p>
               </div>
-              <button onClick={() => setOpen(false)} className="text-white/60 hover:text-white transition-colors">
+              <button
+                onClick={() => setOpen(false)}
+                aria-label={lang === 'ar' ? 'إغلاق' : 'Close'}
+                className="text-white/60 hover:text-white transition-colors"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>

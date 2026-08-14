@@ -1,0 +1,12 @@
+# robots.txt for El Fetiani Coaching
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+Allow: /
+
+# Disallow private portal routes from being indexed
+Disallow: /#/portal/
+Disallow: /#/intake
+
+# Sitemap (update with your actual domain)
+# Sitemap: https://your-domain.com/sitemap.xml

@@ -30,8 +30,8 @@ export default function PortalLoginPage() {
   // While Firebase is resolving auth state, show a spinner
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <Loader2 size={32} className="animate-spin text-[#FF5500]" />
+      <div className="min-h-screen bg-[#080706] flex items-center justify-center">
+        <Loader2 size={32} className="animate-spin text-[#E8520D]" />
       </div>
     );
   }
@@ -53,13 +53,13 @@ export default function PortalLoginPage() {
 
   return (
     <div
-      className="min-h-screen bg-[#050505] flex items-center justify-center p-4 relative overflow-hidden"
+      className="min-h-screen bg-[#080706] flex items-center justify-center p-4 relative overflow-hidden"
       dir="rtl"
     >
       {/* Background blobs */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 right-1/3 w-96 h-96 bg-[#FF5500]/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-[#FF5500]/5 rounded-full blur-[80px]" />
+        <div className="absolute top-1/4 right-1/3 w-96 h-96 bg-[#E8520D]/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-[#E8520D]/5 rounded-full blur-[80px]" />
       </div>
 
       <motion.div
@@ -71,18 +71,18 @@ export default function PortalLoginPage() {
         {/* Logo */}
         <div className="text-center mb-10">
           <a href="/#/" className="inline-flex flex-col items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF5500] to-[#FF3300] font-black text-white text-3xl shadow-[0_0_30px_rgba(255,85,0,0.4)] mb-2">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#E8520D] to-[#FF3300] font-black text-white text-3xl shadow-[0_0_30px_rgba(232, 82, 13, 0.4)] mb-2">
               F
             </div>
             <h1 className="text-2xl font-black text-white">
-              EL FETIANI <span className="text-[#FF5500]">COACHING</span>
+              EL FETIANI <span className="text-[#E8520D]">COACHING</span>
             </h1>
           </a>
           <p className="text-white/40 text-sm mt-2">منصة التدريب الخاصة</p>
         </div>
 
         {/* Card */}
-        <div className="bg-[#0e0e0e]/80 backdrop-blur-xl border border-white/8 rounded-2xl p-8">
+        <div className="bg-[#0f0e0d]/80 backdrop-blur-xl border border-white/8 rounded-2xl p-8">
           <h2 className="text-lg font-bold mb-6 text-center">تسجيل الدخول</h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -95,7 +95,7 @@ export default function PortalLoginPage() {
                 placeholder="example@email.com"
                 required
                 autoComplete="email"
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/25 outline-none focus:border-[#FF5500]/60 focus:bg-white/8 transition text-sm"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/25 outline-none focus:border-[#E8520D]/60 focus:bg-white/8 transition text-sm"
               />
             </div>
 
@@ -109,7 +109,7 @@ export default function PortalLoginPage() {
                   placeholder="أدخل كلمة المرور..."
                   required
                   autoComplete="current-password"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pl-12 text-white placeholder:text-white/25 outline-none focus:border-[#FF5500]/60 focus:bg-white/8 transition text-sm"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pl-12 text-white placeholder:text-white/25 outline-none focus:border-[#E8520D]/60 focus:bg-white/8 transition text-sm"
                 />
                 <button
                   type="button"
@@ -127,7 +127,7 @@ export default function PortalLoginPage() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="rounded border border-white/10 bg-white/5 text-[#FF5500] focus:ring-[#FF5500]/60 w-4 h-4 cursor-pointer"
+                  className="rounded border border-white/10 bg-white/5 text-[#E8520D] focus:ring-[#E8520D]/60 w-4 h-4 cursor-pointer"
                 />
                 <span className="text-sm text-white/60 select-none">تذكرني (أضفني للدخول تلقائيًا)</span>
               </label>
@@ -146,7 +146,7 @@ export default function PortalLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#FF5500] hover:bg-[#FF6620] disabled:opacity-60 text-white font-bold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 mt-2"
+              className="w-full bg-[#E8520D] hover:bg-[#C9440A] disabled:opacity-60 text-white font-bold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 mt-2"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

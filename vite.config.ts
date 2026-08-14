@@ -28,5 +28,24 @@ export default defineConfig({
   ],
   server: {
     host: true
-  }
+  },
+  build: {
+    // CSS code splitting — each async chunk gets its own CSS file
+    cssCodeSplit: true,
+    // Warn on chunks > 500 kB (default is 500, explicitly set for clarity)
+    chunkSizeWarningLimit: 500,
+    rollupOptions: {
+      output: {
+        // Split large third-party libraries into separate cacheable chunks
+        manualChunks(id) {
+          if (id.includes('node_modules/firebase')) return 'vendor-firebase';
+          if (id.includes('node_modules/framer-motion')) return 'vendor-motion';
+          if (id.includes('node_modules/react-router')) return 'vendor-router';
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) return 'vendor-react';
+          if (id.includes('node_modules/lucide-react')) return 'vendor-lucide';
+        },
+      },
+    },
+  },
 })
+

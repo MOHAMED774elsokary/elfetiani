@@ -32,6 +32,10 @@ export interface Client {
   bodyStats: BodyStat[];
   coachNotes?: string;
   progressPhotos?: string[]; // base64 data URIs
+  /** When true the client cannot log in until the coach reactivates the account */
+  isLocked?: boolean;
+  /** Timestamp of when the account was locked (ISO string) */
+  lockedAt?: string;
 }
 
 // ─── Workout Plan ──────────────────────────────────────────────────────────

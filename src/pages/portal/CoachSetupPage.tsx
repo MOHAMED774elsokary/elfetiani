@@ -43,9 +43,9 @@ export default function CoachSetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4" dir="rtl">
+    <div className="min-h-screen bg-[#080706] flex items-center justify-center p-4" dir="rtl">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/3 right-1/3 w-96 h-96 bg-[#FF5500]/8 rounded-full blur-[120px]" />
+        <div className="absolute top-1/3 right-1/3 w-96 h-96 bg-[#E8520D]/8 rounded-full blur-[120px]" />
       </div>
 
       <motion.div
@@ -55,14 +55,14 @@ export default function CoachSetupPage() {
       >
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#FF5500]/15 border border-[#FF5500]/20 mb-4">
-            <ShieldCheck size={32} className="text-[#FF5500]" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#E8520D]/15 border border-[#E8520D]/20 mb-4">
+            <ShieldCheck size={32} className="text-[#E8520D]" />
           </div>
           <h1 className="text-2xl font-black text-white">إعداد حساب المدرب</h1>
           <p className="text-white/40 text-sm mt-2">أنشئ حسابك كمدرب (مرة واحدة فقط)</p>
         </div>
 
-        <div className="bg-[#0e0e0e]/80 backdrop-blur-xl border border-white/8 rounded-2xl p-8">
+        <div className="bg-[#0f0e0d]/80 backdrop-blur-xl border border-white/8 rounded-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm text-white/60 mb-2">بريدك الإلكتروني</label>
@@ -73,7 +73,7 @@ export default function CoachSetupPage() {
                 placeholder="your@email.com"
                 required
                 autoComplete="email"
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/25 outline-none focus:border-[#FF5500]/60 transition text-sm"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/25 outline-none focus:border-[#E8520D]/60 transition text-sm"
               />
             </div>
 
@@ -88,7 +88,7 @@ export default function CoachSetupPage() {
                   required
                   minLength={6}
                   autoComplete="new-password"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pl-12 text-white placeholder:text-white/25 outline-none focus:border-[#FF5500]/60 transition text-sm"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pl-12 text-white placeholder:text-white/25 outline-none focus:border-[#E8520D]/60 transition text-sm"
                 />
                 <button type="button" onClick={() => setShowPass(s => !s)} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition">
                   {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -105,7 +105,7 @@ export default function CoachSetupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#FF5500] hover:bg-[#FF6620] disabled:opacity-60 text-white font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2"
+              className="w-full bg-[#E8520D] hover:bg-[#C9440A] disabled:opacity-60 text-white font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2"
             >
               {loading
                 ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -117,7 +117,7 @@ export default function CoachSetupPage() {
 
           <div className="mt-5 pt-5 border-t border-white/5 text-center">
             <p className="text-xs text-white/25">هل لديك حساب بالفعل؟</p>
-            <a href="/#/portal/login" className="text-xs text-[#FF5500] hover:text-[#FF6620] transition">تسجيل الدخول</a>
+            <a href="/#/portal/login" className="text-xs text-[#E8520D] hover:text-[#C9440A] transition">تسجيل الدخول</a>
           </div>
         </div>
       </motion.div>

@@ -11,7 +11,7 @@ import type { NotificationType } from './notifications';
 function getNotificationIcon(type: NotificationType) {
   switch (type) {
     case 'chat_message': return <MessageCircle size={16} className="text-blue-400" />;
-    case 'workout_assigned': return <Dumbbell size={16} className="text-[#FF5500]" />;
+    case 'workout_assigned': return <Dumbbell size={16} className="text-[#E8520D]" />;
     case 'nutrition_updated': return <UtensilsCrossed size={16} className="text-green-400" />;
     case 'checkin_reviewed':
     case 'checkin_submitted': return <ClipboardList size={16} className="text-purple-400" />;
@@ -58,9 +58,9 @@ export default function NotificationsDropdown() {
         className="relative p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-all"
         aria-label="الإشعارات"
       >
-        <Bell size={20} className={unreadCount > 0 ? 'text-[#FF5500]' : 'text-white/50'} />
+        <Bell size={20} className={unreadCount > 0 ? 'text-[#E8520D]' : 'text-white/50'} />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#FF5500] text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(255,85,0,0.4)] animate-pulse">
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#E8520D] text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(232, 82, 13, 0.4)] animate-pulse">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -82,7 +82,7 @@ export default function NotificationsDropdown() {
               {unreadCount > 0 && (
                 <button
                   onClick={() => markAllRead()}
-                  className="flex items-center gap-1 text-xs text-[#FF5500] hover:text-[#FF6620] font-medium transition"
+                  className="flex items-center gap-1 text-xs text-[#E8520D] hover:text-[#C9440A] font-medium transition"
                 >
                   <CheckCheck size={14} />
                   قراءة الكل
@@ -111,7 +111,7 @@ export default function NotificationsDropdown() {
                     >
                       {/* Icon */}
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                        notif.read ? 'bg-white/5' : 'bg-[#FF5500]/10'
+                        notif.read ? 'bg-white/5' : 'bg-[#E8520D]/10'
                       }`}>
                         {getNotificationIcon(notif.type)}
                       </div>
@@ -121,7 +121,7 @@ export default function NotificationsDropdown() {
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-sm truncate">{notif.title}</span>
                           {!notif.read && (
-                            <span className="w-2 h-2 rounded-full bg-[#FF5500] flex-shrink-0" />
+                            <span className="w-2 h-2 rounded-full bg-[#E8520D] flex-shrink-0" />
                           )}
                         </div>
                         <p className="text-white/50 text-xs mt-0.5 line-clamp-2">{notif.body}</p>

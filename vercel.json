@@ -6,6 +6,10 @@
     {
       "path": "/api/remind-clients",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/check-subscriptions",
+      "schedule": "0 8 * * *"
     }
   ],
   "rewrites": [
@@ -14,7 +18,7 @@
       "destination": "/api/$1"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/((?!api/|robots\\.txt|sitemap\\.xml|manifest\\.json|firebase-messaging-sw\\.js|icons/|assets/).*)",
       "destination": "/index.html"
     }
   ],
@@ -50,6 +54,19 @@
       "source": "/assets/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*\\.(?:jpg|jpeg|png|webp|gif|svg))",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=2592000, stale-while-revalidate=86400" }
+      ]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400" },
+        { "key": "Content-Type", "value": "text/plain; charset=utf-8" }
       ]
     }
   ]

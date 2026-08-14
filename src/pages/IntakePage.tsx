@@ -8,14 +8,14 @@ export default function IntakePage() {
 
   return (
     <PasswordGate>
-      <div className="bg-[#050505] min-h-screen text-white" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      <div className="bg-[#080706] min-h-screen text-white" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
         {/* Mini header */}
-        <div className="fixed top-0 left-0 right-0 z-50 bg-[#050505]/95 backdrop-blur-xl border-b border-white/5 py-4 px-6 flex items-center justify-between">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-[#080706]/95 backdrop-blur-xl border-b border-white/5 py-4 px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF5500] to-[#FF3300] flex items-center justify-center font-black text-white text-sm shadow-[0_0_15px_rgba(255,85,0,0.3)]">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#E8520D] to-[#FF3300] flex items-center justify-center font-black text-white text-sm shadow-[0_0_15px_rgba(232, 82, 13, 0.3)]">
               F
             </div>
-            <span className="text-white font-black text-lg">EL FETIANI <span className="text-[#FF5500]">COACHING</span></span>
+            <span className="text-white font-black text-lg">EL FETIANI <span className="text-[#E8520D]">COACHING</span></span>
           </div>
           <button
             onClick={() => setLang(l => l === 'ar' ? 'en' : 'ar')}

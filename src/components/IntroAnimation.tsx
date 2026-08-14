@@ -38,18 +38,18 @@ export default function IntroAnimation() {
         className="absolute inset-0 pointer-events-none"
         style={{
           zIndex: 1,
-          background: 'radial-gradient(ellipse 70% 50% at 50% 50%, rgba(255,85,0,0.08) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse 70% 50% at 50% 50%, rgba(232, 82, 13, 0.08) 0%, transparent 70%)',
         }}
       />
 
       {/* ── Layer 1: Horizontal glow lines top/bottom ── */}
       <motion.div className="absolute top-0 left-0 right-0 h-px"
-        style={{ zIndex: 2, background: 'linear-gradient(90deg, transparent, #FF5500 50%, transparent)' }}
+        style={{ zIndex: 2, background: 'linear-gradient(90deg, transparent, #E8520D 50%, transparent)' }}
         initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
         transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
       />
       <motion.div className="absolute bottom-0 left-0 right-0 h-px"
-        style={{ zIndex: 2, background: 'linear-gradient(90deg, transparent, #FF5500 50%, transparent)' }}
+        style={{ zIndex: 2, background: 'linear-gradient(90deg, transparent, #E8520D 50%, transparent)' }}
         initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
         transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
       />
@@ -95,8 +95,8 @@ export default function IntroAnimation() {
           style={{
             maxWidth: '560px',
             height: '2px',
-            background: 'linear-gradient(90deg, transparent, #FF5500, #FF8C00, #FF5500, transparent)',
-            boxShadow: '0 0 18px rgba(255,85,0,0.55)',
+            background: 'linear-gradient(90deg, transparent, #E8520D, #FF8C00, #E8520D, transparent)',
+            boxShadow: '0 0 18px rgba(232, 82, 13, 0.55)',
           }}
         />
 
@@ -111,8 +111,8 @@ export default function IntroAnimation() {
                 fontSize: 'clamp(2.2rem, 8vw, 6.5rem)',
                 display: 'inline-block',
                 transformStyle: 'preserve-3d',
-                color: '#FF5500',
-                textShadow: '0 0 28px rgba(255,85,0,0.4)',
+                color: '#E8520D',
+                textShadow: '0 0 28px rgba(232, 82, 13, 0.4)',
               }}
               initial={{ opacity: 0, rotateX: 90, y: -30 }}
               animate={{ opacity: 1, rotateX: 0, y: 0 }}
@@ -142,8 +142,8 @@ export default function IntroAnimation() {
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.15, ease: 'linear' }}
             style={{
-              background: 'linear-gradient(90deg, #FF5500, #FF8C00)',
-              boxShadow: '0 0 10px rgba(255,85,0,0.9)',
+              background: 'linear-gradient(90deg, #E8520D, #FF8C00)',
+              boxShadow: '0 0 10px rgba(232, 82, 13, 0.9)',
             }}
           />
         </div>
@@ -160,13 +160,13 @@ export default function IntroAnimation() {
         {/* Orbit ring decorations */}
         <motion.div
           className="absolute rounded-full pointer-events-none"
-          style={{ width: '55vmin', height: '55vmin', border: '1px solid rgba(255,85,0,0.07)' }}
+          style={{ width: '55vmin', height: '55vmin', border: '1px solid rgba(232, 82, 13, 0.07)' }}
           animate={{ rotate: 360 }}
           transition={{ duration: 14, repeat: Infinity, ease: 'linear' }}
         />
         <motion.div
           className="absolute rounded-full pointer-events-none"
-          style={{ width: '75vmin', height: '75vmin', border: '1px solid rgba(255,85,0,0.04)' }}
+          style={{ width: '75vmin', height: '75vmin', border: '1px solid rgba(232, 82, 13, 0.04)' }}
           animate={{ rotate: -360 }}
           transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
         />
@@ -196,7 +196,7 @@ export default function IntroAnimation() {
       ].map((cls, i) => (
         <motion.div
           key={i}
-          className={`absolute w-6 h-6 ${cls} border-[#FF5500]/40`}
+          className={`absolute w-6 h-6 ${cls} border-[#E8520D]/40`}
           style={{ zIndex: 31 }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

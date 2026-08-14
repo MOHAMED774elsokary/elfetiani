@@ -32,7 +32,7 @@ function Toggle({
     <label className="flex items-center justify-between gap-4 cursor-pointer group">
       <div className="flex items-center gap-3 flex-1">
         <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0 group-hover:bg-white/8 transition">
-          <Icon size={16} className="text-[#FF5500]" />
+          <Icon size={16} className="text-[#E8520D]" />
         </div>
         <div>
           <div className="text-sm font-bold">{label}</div>
@@ -42,7 +42,7 @@ function Toggle({
       <div
         onClick={() => onChange(!checked)}
         className={`w-11 h-6 rounded-full transition-all flex items-center px-0.5 cursor-pointer ${
-          checked ? 'bg-[#FF5500]' : 'bg-white/10'
+          checked ? 'bg-[#E8520D]' : 'bg-white/10'
         }`}
       >
         <div
@@ -84,7 +84,7 @@ export default function NotificationSettings() {
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <Loader2 size={20} className="animate-spin text-[#FF5500]" />
+        <Loader2 size={20} className="animate-spin text-[#E8520D]" />
       </div>
     );
   }
@@ -92,10 +92,10 @@ export default function NotificationSettings() {
   return (
     <div className="space-y-6">
       {/* Push Notification Permission */}
-      <div className="bg-[#0e0e0e] border border-white/5 rounded-2xl p-5 space-y-4">
+      <div className="bg-[#0f0e0d] border border-white/5 rounded-2xl p-5 space-y-4">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-[#FF5500]/10 flex items-center justify-center">
-            <Smartphone size={20} className="text-[#FF5500]" />
+          <div className="w-10 h-10 rounded-xl bg-[#E8520D]/10 flex items-center justify-center">
+            <Smartphone size={20} className="text-[#E8520D]" />
           </div>
           <div>
             <h3 className="font-bold text-sm">إشعارات الدفع</h3>
@@ -126,7 +126,7 @@ export default function NotificationSettings() {
         ) : (
           <button
             onClick={requestPermission}
-            className="w-full flex items-center justify-center gap-2 bg-[#FF5500] hover:bg-[#FF6620] text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_10px_20px_rgba(255,85,0,0.2)] active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 bg-[#E8520D] hover:bg-[#C9440A] text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_10px_20px_rgba(232, 82, 13, 0.2)] active:scale-[0.98]"
           >
             <Bell size={18} />
             تفعيل الإشعارات
@@ -135,10 +135,10 @@ export default function NotificationSettings() {
       </div>
 
       {/* Notification Preferences */}
-      <div className="bg-[#0e0e0e] border border-white/5 rounded-2xl p-5 space-y-4">
+      <div className="bg-[#0f0e0d] border border-white/5 rounded-2xl p-5 space-y-4">
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-bold text-sm">تفضيلات الإشعارات</h3>
-          {saving && <Loader2 size={14} className="animate-spin text-[#FF5500]" />}
+          {saving && <Loader2 size={14} className="animate-spin text-[#E8520D]" />}
           {saved && <span className="text-xs text-green-400">✓ تم الحفظ</span>}
         </div>
         <p className="text-xs text-white/30 mb-4">اختر أنواع الإشعارات التي تريد استلامها</p>

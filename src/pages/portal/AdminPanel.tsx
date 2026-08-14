@@ -15,6 +15,9 @@ import {
   getUidByClientId,
   getCheckIns,
   addCoachReplyToCheckIn,
+  lockClient,
+  unlockClient,
+  checkAndLockExpiredSubscriptions,
 } from '../../portal/firestore';
 import { notifyWorkoutAssigned, notifyNutritionUpdated } from '../../portal/notifications';
 import {
@@ -59,6 +62,11 @@ import {
   Star,
   Send,
   Bell,
+  Lock,
+  LockOpen,
+  KeyRound,
+  LogOut,
+  ShieldAlert,
 } from 'lucide-react';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -198,7 +206,7 @@ function ExercisePicker({ onPick, onClose }: { onPick: (name: string) => void; o
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="ابحث عن تمرين... (بالإنجليزية)"
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-[#FF5500]/60 transition"
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-[#E8520D]/60 transition"
           />
         </div>
 
@@ -207,7 +215,7 @@ function ExercisePicker({ onPick, onClose }: { onPick: (name: string) => void; o
           <button
             onClick={() => setActiveSession('all')}
             className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
-              activeSession === 'all' ? 'bg-[#FF5500] text-white' : 'bg-white/5 text-white/50 hover:text-white'
+              activeSession === 'all' ? 'bg-[#E8520D] text-white' : 'bg-white/5 text-white/50 hover:text-white'
             }`}
           >
             الكل
@@ -217,7 +225,7 @@ function ExercisePicker({ onPick, onClose }: { onPick: (name: string) => void; o
               key={s.session}
               onClick={() => setActiveSession(s.session)}
               className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
-                activeSession === s.session ? 'bg-[#FF5500] text-white' : 'bg-white/5 text-white/50 hover:text-white'
+                activeSession === s.session ? 'bg-[#E8520D] text-white' : 'bg-white/5 text-white/50 hover:text-white'
               }`}
             >
               {s.session}
@@ -237,7 +245,7 @@ function ExercisePicker({ onPick, onClose }: { onPick: (name: string) => void; o
                     <button
                       key={ex}
                       onClick={() => { onPick(ex); onClose(); }}
-                      className="w-full text-right px-4 py-2.5 rounded-xl text-sm hover:bg-[#FF5500]/10 hover:text-[#FF5500] text-white/70 transition"
+                      className="w-full text-right px-4 py-2.5 rounded-xl text-sm hover:bg-[#E8520D]/10 hover:text-[#E8520D] text-white/70 transition"
                     >
                       {ex}
                     </button>
@@ -247,13 +255,13 @@ function ExercisePicker({ onPick, onClose }: { onPick: (name: string) => void; o
             ) : (
               filteredSessions.map((s) => (
                 <div key={s.session}>
-                  <p className="text-xs text-[#FF5500]/70 font-bold mb-1.5 mt-2">{s.session}</p>
+                  <p className="text-xs text-[#E8520D]/70 font-bold mb-1.5 mt-2">{s.session}</p>
                   <div className="space-y-1">
                     {s.exercises.map((ex) => (
                       <button
                         key={ex}
                         onClick={() => { onPick(ex); onClose(); }}
-                        className="w-full text-right px-4 py-2.5 rounded-xl text-sm hover:bg-[#FF5500]/10 hover:text-[#FF5500] text-white/70 transition"
+                        className="w-full text-right px-4 py-2.5 rounded-xl text-sm hover:bg-[#E8520D]/10 hover:text-[#E8520D] text-white/70 transition"
                       >
                         {ex}
                       </button>
@@ -276,7 +284,7 @@ function ExercisePicker({ onPick, onClose }: { onPick: (name: string) => void; o
                     <button
                       key={ex}
                       onClick={() => { onPick(ex); onClose(); }}
-                      className="w-full text-right px-4 py-2.5 rounded-xl text-sm hover:bg-[#FF5500]/10 hover:text-[#FF5500] text-white/70 transition"
+                      className="w-full text-right px-4 py-2.5 rounded-xl text-sm hover:bg-[#E8520D]/10 hover:text-[#E8520D] text-white/70 transition"
                     >
                       {ex}
                     </button>
@@ -297,7 +305,7 @@ function Input({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> 
       <label className="text-xs text-white/50 block mb-1.5">{label}</label>
       <input
         {...props}
-        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#FF5500]/60 transition"
+        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#E8520D]/60 transition"
       />
     </div>
   );
@@ -310,7 +318,7 @@ function Textarea({ label, ...props }: React.TextareaHTMLAttributes<HTMLTextArea
       <textarea
         {...props}
         rows={3}
-        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#FF5500]/60 transition resize-none"
+        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#E8520D]/60 transition resize-none"
       />
     </div>
   );
@@ -319,7 +327,7 @@ function Textarea({ label, ...props }: React.TextareaHTMLAttributes<HTMLTextArea
 function SaveBtn({ saving, onClick }: { saving: boolean; onClick: () => void }) {
   return (
     <button onClick={onClick} disabled={saving}
-      className="flex items-center gap-2 bg-[#FF5500] hover:bg-[#FF6620] disabled:opacity-60 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">
+      className="flex items-center gap-2 bg-[#E8520D] hover:bg-[#C9440A] disabled:opacity-60 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">
       {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
       {saving ? 'جاري الحفظ...' : 'حفظ'}
     </button>
@@ -334,68 +342,112 @@ function ClientList() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getClients().then(setClients).finally(() => setLoading(false));
+    getClients().then(async (all) => {
+      setClients(all);
+      // Auto-lock any clients whose subscription has expired
+      try { await checkAndLockExpiredSubscriptions(); } catch {}
+      // Refresh list after potential locks
+      getClients().then(setClients).finally(() => setLoading(false));
+    }).catch(() => setLoading(false));
   }, []);
 
   async function handleDelete(id: string) {
     if (!confirm('هل أنت متأكد؟ سيتم حذف جميع البيانات.')) return;
-    await deleteClientData(id);
-    setClients((prev) => prev.filter((c) => c.id !== id));
+    try {
+      await deleteClientData(id);
+      setClients((prev) => prev.filter((c) => c.id !== id));
+      alert('تم حذف العميل بنجاح');
+    } catch (e: any) {
+      console.error('Error deleting client:', e);
+      alert('خطأ في حذف العميل: ' + e.message);
+    }
   }
 
   const filtered = clients.filter((c) =>
     c.name.includes(search) || c.email?.includes(search)
   );
 
-  if (loading) return <div className="flex justify-center py-16"><Loader2 size={24} className="animate-spin text-[#FF5500]" /></div>;
+  if (loading) return <div className="flex justify-center py-16"><Loader2 size={24} className="animate-spin text-[#E8520D]" /></div>;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <input type="text" placeholder="ابحث عن عميل..." value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-[#FF5500]/50 transition w-64" />
+          className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-[#E8520D]/50 transition w-64" />
         <button onClick={() => navigate('/portal/admin/add')}
-          className="flex items-center gap-2 bg-[#FF5500] hover:bg-[#FF6620] text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">
+          className="flex items-center gap-2 bg-[#E8520D] hover:bg-[#C9440A] text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">
           <UserPlus size={16} />إضافة عميل
         </button>
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center text-white/30 py-16">{search ? 'لا توجد نتائج' : 'لا يوجد عملاء بعد. أضف أول عميل!'}</div>
+        <div className="text-center text-white/30 py-16 font-medium">{search ? 'لا توجد نتائج' : 'لوحة التحكم جاهزة! ابدأ بإضافة أول بطل للفريق'}</div>
       )}
 
-      <div className="grid gap-4">
+      <div className="grid gap-3">
         {filtered.map((c) => {
           const latest = c.bodyStats?.at(-1);
+          const todayStr = new Date().toISOString().slice(0, 10);
+          const isExpired = c.endDate ? c.endDate < todayStr : false;
+          const dLeft = c.endDate
+            ? Math.ceil((new Date(c.endDate).getTime() - new Date(todayStr).getTime()) / (1000 * 60 * 60 * 24))
+            : null;
+          const isWarn = dLeft !== null && dLeft > 0 && dLeft <= 5;
           return (
-            <div key={c.id} className="bg-[#0e0e0e] border border-white/5 hover:border-white/10 rounded-2xl p-5 flex items-center gap-4 transition-all">
-              <div className="w-12 h-12 rounded-xl bg-[#FF5500] flex items-center justify-center text-white font-black text-sm flex-shrink-0">
-                {c.avatarInitials}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-bold">{c.name}</div>
-                <div className="text-white/40 text-sm">{c.email}</div>
-                <div className="grid grid-cols-2 gap-2 mt-1">
-                  <div className="text-white/30 text-xs">في رحلتك منذ: <span className="font-bold text-[#FF5500]/80">{c.startDate}</span></div>
-                  {c.endDate && <div className="text-white/30 text-xs">ينتهي في: <span className="font-bold text-red-500/80">{c.endDate}</span></div>}
-                  {c.subscriptionPlan && <div className="text-[#FF5500] text-xs col-span-2">الباقة: {c.subscriptionPlan}</div>}
+            <div key={c.id} className={`bg-[#0f0e0d] border rounded-2xl p-4 sm:p-5 transition-all ${
+              c.isLocked || isExpired ? 'border-red-500/20 hover:border-red-500/30' 
+              : isWarn ? 'border-yellow-500/20 hover:border-yellow-500/30'
+              : 'border-white/5 hover:border-white/10'
+            }`}>
+              {/* Top row: avatar + info */}
+              <div className="flex items-start gap-3 mb-3">
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-white font-black text-sm flex-shrink-0 ${
+                  c.isLocked || isExpired ? 'bg-red-500/60' : isWarn ? 'bg-yellow-500/70' : 'bg-[#E8520D]'
+                }`}>
+                  {c.isLocked || isExpired ? <Lock size={18} /> : c.avatarInitials}
                 </div>
-              </div>
-              {latest && (
-                <div className="text-center flex-shrink-0">
-                  <div className="font-bold text-[#FF5500]">{latest.weight} kg</div>
-                  <div className="text-white/30 text-xs">الوزن</div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-sm truncate">{c.name}</span>
+                    {(c.isLocked || isExpired) && (
+                      <span className="text-[9px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 px-1.5 py-0.5 rounded-full">موقوف</span>
+                    )}
+                    {isWarn && !c.isLocked && (
+                      <span className="text-[9px] font-bold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-1.5 py-0.5 rounded-full">{dLeft} أيام</span>
+                    )}
+                    {!c.isLocked && !isExpired && !isWarn && (
+                      <span className="text-[9px] font-bold bg-green-500/10 text-green-400 border border-green-500/20 px-1.5 py-0.5 rounded-full">نشط</span>
+                    )}
+                  </div>
+                  <div className="text-white/40 text-xs truncate">{c.email}</div>
+                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+                    {c.subscriptionPlan && <span className="text-[#E8520D] text-[10px]">{c.subscriptionPlan}</span>}
+                    {c.endDate && <span className={`text-[10px] ${isExpired ? 'text-red-400' : isWarn ? 'text-yellow-400' : 'text-white/30'}`}>← {c.endDate}</span>}
+                  </div>
                 </div>
-              )}
-              <div className="flex items-center gap-2 flex-shrink-0">
+                {latest && (
+                  <div className="text-center flex-shrink-0 hidden sm:block">
+                    <div className="font-bold text-[#E8520D] text-sm">{latest.weight} kg</div>
+                    <div className="text-white/30 text-[10px]">الوزن</div>
+                  </div>
+                )}
+              </div>
+              {/* Bottom row: actions */}
+              <div className="flex items-center gap-2">
                 <button onClick={() => navigate(`/portal/admin/client/${c.id}`)}
-                  className="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white px-3 py-2 rounded-xl text-xs font-medium transition">
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white px-3 py-2.5 rounded-xl text-xs font-medium transition active:scale-[0.97]">
                   <Eye size={14} />إدارة
                 </button>
+                {(c.isLocked || isExpired) && (
+                  <button onClick={() => navigate(`/portal/admin/client/${c.id}`)}
+                    className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-[#E8520D]/15 to-[#FF7700]/10 text-[#E8520D] hover:from-[#E8520D]/25 hover:to-[#FF7700]/15 border border-[#E8520D]/20 px-3 py-2.5 rounded-xl text-xs font-bold transition active:scale-[0.97]">
+                    <LockOpen size={14} />تجديد
+                  </button>
+                )}
                 <button onClick={() => handleDelete(c.id)}
-                  className="p-2 rounded-xl text-white/30 hover:text-red-400 hover:bg-red-500/10 transition">
-                  <Trash2 size={16} />
+                  className="p-2.5 rounded-xl text-white/30 hover:text-red-400 hover:bg-red-500/10 transition">
+                  <Trash2 size={15} />
                 </button>
               </div>
             </div>
@@ -491,7 +543,7 @@ function AddClient() {
 
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-lg mx-auto mt-10">
-        <div className="bg-[#0e0e0e] border border-green-500/20 rounded-2xl p-8 text-center">
+        <div className="bg-[#0f0e0d] border border-green-500/20 rounded-2xl p-8 text-center">
           <div className="w-16 h-16 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 size={32} />
           </div>
@@ -516,11 +568,11 @@ function AddClient() {
         <ChevronLeft size={16} />رجوع للقائمة
       </button>
 
-      <div className="bg-[#0e0e0e] border border-white/5 rounded-2xl p-6">
+      <div className="bg-[#0f0e0d] border border-white/5 rounded-2xl p-6">
         <h2 className="font-bold text-lg mb-6">إضافة عميل جديد</h2>
 
         {/* Instruction banner */}
-        <div className="bg-[#FF5500]/8 border border-[#FF5500]/15 rounded-xl p-3 mb-5 text-xs text-[#FF5500]/80">
+        <div className="bg-[#E8520D]/8 border border-[#E8520D]/15 rounded-xl p-3 mb-5 text-xs text-[#E8520D]/80">
           أدخل بريد العميل وكلمة مرور تختارها أنت، ثم أرسلها له عبر واتساب. سيستخدمها لتسجيل الدخول من هاتفه.
         </div>
 
@@ -534,17 +586,17 @@ function AddClient() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs text-white/50 block mb-1.5">نوع الباقة *</label>
-                <select value={packageType} onChange={(e) => setPackageType(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#FF5500]/60 transition">
-                  <option value="اقتصادية" className="bg-[#0e0e0e]">اقتصادية</option>
-                  <option value="VIP" className="bg-[#0e0e0e]">VIP</option>
+                <select value={packageType} onChange={(e) => setPackageType(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#E8520D]/60 transition">
+                  <option value="اقتصادية" className="bg-[#0f0e0d]">اقتصادية</option>
+                  <option value="VIP" className="bg-[#0f0e0d]">VIP</option>
                 </select>
               </div>
               <div>
                 <label className="text-xs text-white/50 block mb-1.5">المدة *</label>
-                <select value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#FF5500]/60 transition">
-                  <option value="1" className="bg-[#0e0e0e]">شهر واحد</option>
-                  <option value="3" className="bg-[#0e0e0e]">3 شهور</option>
-                  <option value="6" className="bg-[#0e0e0e]">6 شهور</option>
+                <select value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#E8520D]/60 transition">
+                  <option value="1" className="bg-[#0f0e0d]">شهر واحد</option>
+                  <option value="3" className="bg-[#0f0e0d]">3 شهور</option>
+                  <option value="6" className="bg-[#0f0e0d]">6 شهور</option>
                 </select>
               </div>
             </div>
@@ -565,7 +617,7 @@ function AddClient() {
                     minLength={6}
                     placeholder="6 أحرف على الأقل..."
                     autoComplete="new-password"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pl-12 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#FF5500]/60 transition"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pl-12 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#E8520D]/60 transition"
                   />
                   <button type="button" onClick={() => setShowPass(s => !s)} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition">
                     {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -578,7 +630,7 @@ function AddClient() {
           {error && <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-xl px-4 py-3">{error}</div>}
 
           <button type="submit" disabled={loading}
-            className="w-full bg-[#FF5500] hover:bg-[#FF6620] disabled:opacity-60 text-white font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2">
+            className="w-full bg-[#E8520D] hover:bg-[#C9440A] disabled:opacity-60 text-white font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2">
             {loading ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
             {loading ? 'جاري الإنشاء...' : 'إنشاء الحساب'}
           </button>
@@ -589,7 +641,7 @@ function AddClient() {
 }
 
 // ─── Client Detail ──────────────────────────────────────────────────────────
-type DetailTab = 'stats' | 'workout' | 'nutrition' | 'checkins';
+type DetailTab = 'stats' | 'workout' | 'nutrition' | 'checkins' | 'account';
 
 function ClientDetail() {
   const { clientId } = useParams<{ clientId: string }>();
@@ -605,70 +657,81 @@ function ClientDetail() {
     getClient(clientId).then((c) => { setClient(c || null); setLoading(false); });
   }, [clientId]);
 
-  if (loading) return <div className="flex justify-center py-16"><Loader2 size={24} className="animate-spin text-[#FF5500]" /></div>;
+  if (loading) return <div className="flex justify-center py-16"><Loader2 size={24} className="animate-spin text-[#E8520D]" /></div>;
   if (!client) return <div className="text-white/30 text-center py-16">عميل غير موجود</div>;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
-      <div className="flex items-center gap-4 flex-wrap">
-        <button onClick={() => navigate('/portal/admin')} className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition">
-          <ChevronLeft size={18} />
-        </button>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-wrap">
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-[#FF5500] flex items-center justify-center font-black flex-shrink-0">{client.avatarInitials}</div>
+          <button onClick={() => navigate('/portal/admin')} className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition flex-shrink-0">
+            <ChevronLeft size={18} />
+          </button>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black flex-shrink-0 ${
+            client.isLocked ? 'bg-red-500/60' : 'bg-[#E8520D]'
+          }`}>
+            {client.isLocked ? <Lock size={16} /> : client.avatarInitials}
+          </div>
           <div className="min-w-0 flex-1">
-            <h2 className="font-bold truncate">{client.name}</h2>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="font-bold truncate">{client.name}</h2>
+              {client.isLocked && (
+                <span className="text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded-full flex-shrink-0">موقوف</span>
+              )}
+            </div>
             <p className="text-white/40 text-sm truncate">{client.email}</p>
           </div>
         </div>
 
-        {client.phone && (
-          <a href={`https://wa.me/${client.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`مرحباً ${client.name}!\n\nتم تحديث بياناتك أو خطتك على المنصة الخاصة بك. تفضل بزيارة حسابك لمشاهدة التحديثات الجديدة.\n\nمنصة El Fetiani Coaching\n${window.location.origin}/#/portal/login`)}`} target="_blank" rel="noreferrer" 
-             className="flex items-center gap-2 bg-[#25D366]/20 text-[#25D366] hover:bg-[#25D366]/30 px-4 py-2 rounded-xl text-sm font-bold transition whitespace-nowrap">
-            <MessageCircle size={16} />
-            إشعار واتساب
-          </a>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          {client.phone && (
+            <a href={`https://wa.me/${client.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`مرحباً ${client.name}!\n\nتم تحديث بياناتك أو خطتك على المنصة الخاصة بك. تفضل بزيارة حسابك لمشاهدة التحديثات الجديدة.\n\nمنصة El Fetiani Coaching\n${window.location.origin}/#/portal/login`)}`} target="_blank" rel="noreferrer" 
+               className="flex items-center gap-1.5 bg-[#25D366]/20 text-[#25D366] hover:bg-[#25D366]/30 px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap active:scale-95">
+              <MessageCircle size={14} />واتساب
+            </a>
+          )}
 
-        <button 
-          onClick={async () => {
-            try {
-              setTestingPush(true);
-              const uid = await getUidByClientId(client.id);
-              if (!uid) { alert('لم يتم العثور على حساب للعميل'); return; }
-              const auth = getAuth();
-              const token = await auth.currentUser?.getIdToken();
-              const res = await fetch('/api/send-push', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ userId: uid, type: 'general', title: 'تجربة إشعار', body: 'هذا إشعار تجريبي من لوحة التحكم' })
-              });
-              const data = await res.json();
-              alert(JSON.stringify(data, null, 2));
-            } catch (err: any) {
-              alert('Error: ' + err.message);
-            } finally {
-              setTestingPush(false);
-            }
-          }}
-          disabled={testingPush}
-          className="mr-auto flex items-center gap-2 border border-white/10 hover:border-white/30 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-bold transition disabled:opacity-50"
-        >
-          {testingPush ? <Loader2 size={16} className="animate-spin" /> : <Bell size={16} />}
-          اختبار إشعار
-        </button>
+          <button 
+            onClick={async () => {
+              try {
+                setTestingPush(true);
+                const uid = await getUidByClientId(client.id);
+                if (!uid) { alert('لم يتم العثور على حساب للعميل'); return; }
+                const auth = getAuth();
+                const token = await auth.currentUser?.getIdToken();
+                const res = await fetch('/api/send-push', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                  body: JSON.stringify({ userId: uid, type: 'general', title: 'تجربة إشعار', body: 'هذا إشعار تجريبي من لوحة التحكم' })
+                });
+                const data = await res.json();
+                alert(JSON.stringify(data, null, 2));
+              } catch (err: any) {
+                alert('Error: ' + err.message);
+              } finally {
+                setTestingPush(false);
+              }
+            }}
+            disabled={testingPush}
+            className="flex items-center gap-1.5 border border-white/10 hover:border-white/30 bg-white/5 hover:bg-white/10 px-3 py-2 rounded-xl text-xs font-bold transition disabled:opacity-50 active:scale-95"
+          >
+            {testingPush ? <Loader2 size={14} className="animate-spin" /> : <Bell size={14} />}
+            إشعار
+          </button>
+        </div>
       </div>
 
-      <div className="flex gap-1 bg-white/3 p-1 rounded-xl w-fit flex-wrap">
+      <div className="flex gap-1 bg-white/3 p-1 rounded-xl overflow-x-auto hide-scrollbar -mx-4 px-4 md:mx-0 md:px-1 md:w-fit">
         {([
-          ['stats', Scale, 'الإحصاءات'], 
-          ['workout', Dumbbell, 'التمارين'], 
+          ['stats', Scale, 'الإحصائيات'],
+          ['workout', Dumbbell, 'التمارين'],
           ['nutrition', UtensilsCrossed, 'التغذية'],
-          ['checkins', CheckCircle2, 'التقارير']
+          ['checkins', CheckCircle2, 'التقارير'],
+          ['account', ShieldAlert, 'الحساب'],
         ] as [DetailTab, React.ElementType, string][]).map(([tab, Icon, label]) => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === tab ? 'bg-[#FF5500] text-white' : 'text-white/50 hover:text-white'}`}>
-            <Icon size={14} />{label}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 ${activeTab === tab ? 'bg-[#E8520D] text-white' : 'text-white/50 hover:text-white'}`}>
+            <Icon size={13} />{label}
           </button>
         ))}
       </div>
@@ -678,7 +741,353 @@ function ClientDetail() {
         {activeTab === 'workout' && <WorkoutEditor key="workout" clientId={client.id} clientName={client.name} saving={saving} setSaving={setSaving} />}
         {activeTab === 'nutrition' && <NutritionEditor key="nutrition" clientId={client.id} clientName={client.name} saving={saving} setSaving={setSaving} />}
         {activeTab === 'checkins' && <CheckInsViewer key="checkins" clientId={client.id} />}
+        {activeTab === 'account' && <ClientAccountManager key="account" client={client} onClientUpdated={setClient} />}
       </AnimatePresence>
+    </motion.div>
+  );
+}
+
+// ─── Client Account Manager ─────────────────────────────────────────────────
+function ClientAccountManager({ client, onClientUpdated }: { client: Client; onClientUpdated: (c: Client) => void }) {
+  const [targetUid, setTargetUid] = useState<string | null>(null);
+  const [loadingUid, setLoadingUid] = useState(true);
+  const [locking, setLocking] = useState(false);
+  const [revoking, setRevoking] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [showPass, setShowPass] = useState(false);
+  const [updatingAuth, setUpdatingAuth] = useState(false);
+  const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  // Renewal form state
+  const [showRenewal, setShowRenewal] = useState(false);
+  const [renewPackage, setRenewPackage] = useState('اقتصادية');
+  const [renewDuration, setRenewDuration] = useState('3');
+  const [renewing, setRenewing] = useState(false);
+
+  useEffect(() => {
+    getUidByClientId(client.id).then((uid) => { setTargetUid(uid); setLoadingUid(false); });
+  }, [client.id]);
+
+  const showMsg = (type: 'ok' | 'err', text: string) => {
+    setMsg({ type, text });
+    setTimeout(() => setMsg(null), 4000);
+  };
+
+  // Calculate subscription status
+  const today = new Date().toISOString().slice(0, 10);
+  const isExpired = client.endDate ? client.endDate < today : false;
+  const daysLeft = client.endDate
+    ? Math.ceil((new Date(client.endDate).getTime() - new Date(today).getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+  const isWarning = daysLeft !== null && daysLeft > 0 && daysLeft <= 5;
+
+  async function callAuthApi(body: object): Promise<{ success: boolean; message?: string }> {
+    const { getAuth } = await import('firebase/auth');
+    const token = await getAuth().currentUser?.getIdToken();
+    const res = await fetch('/api/manage-client-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    });
+    const text = await res.text();
+    if (!text) throw new Error('API غير متاح محلياً — يعمل فقط على Vercel');
+    let data: any;
+    try { data = JSON.parse(text); } catch { throw new Error('استجابة غير صالحة من الخادم'); }
+    if (!res.ok) throw new Error(data.error || 'Server error');
+    return data;
+  }
+
+  async function handleToggleLock() {
+    setLocking(true);
+    try {
+      if (client.isLocked) {
+        // If subscription is expired, must renew first — don't just unlock
+        if (isExpired) {
+          setShowRenewal(true);
+          setLocking(false);
+          return;
+        }
+        await unlockClient(client.id);
+        onClientUpdated({ ...client, isLocked: false, lockedAt: undefined });
+        showMsg('ok', 'تم إعادة تفعيل الحساب ✓');
+      } else {
+        await lockClient(client.id);
+        onClientUpdated({ ...client, isLocked: true, lockedAt: new Date().toISOString() });
+        showMsg('ok', 'تم تعليق الحساب ✓ — العميل سيرى شاشة الإيقاف فوراً');
+        if (targetUid) {
+          callAuthApi({ targetUid, action: 'revokeTokens' }).catch(() => {});
+        }
+      }
+    } catch (e: any) {
+      showMsg('err', e.message);
+    } finally {
+      setLocking(false);
+    }
+  }
+
+  async function handleRenewSubscription() {
+    setRenewing(true);
+    try {
+      const startObj = new Date();
+      const endObj = new Date(startObj);
+      endObj.setMonth(endObj.getMonth() + parseInt(renewDuration));
+      const newEndDate = endObj.toISOString().slice(0, 10);
+      const subText = `${renewPackage} - ${renewDuration} ${renewDuration === '1' ? 'شهر' : 'شهور'}`;
+
+      // Update client: unlock + set new dates + new plan
+      const updated: Client = {
+        ...client,
+        isLocked: false,
+        startDate: startObj.toISOString().slice(0, 10),
+        endDate: newEndDate,
+        subscriptionPlan: subText,
+      };
+      delete updated.lockedAt;
+      await saveClient(updated);
+      onClientUpdated(updated);
+      setShowRenewal(false);
+      showMsg('ok', `تم تجديد الاشتراك بنجاح ✓ — ينتهي في ${newEndDate}`);
+    } catch (e: any) {
+      showMsg('err', e.message);
+    } finally {
+      setRenewing(false);
+    }
+  }
+
+  async function handleRevokeTokens() {
+    if (!targetUid) return;
+    if (!confirm('سيتم تسجيل خروج العميل من جميع الأجهزة فوراً. هل أنت متأكد؟')) return;
+    setRevoking(true);
+    try {
+      await callAuthApi({ targetUid, action: 'revokeTokens' });
+      showMsg('ok', 'تم تسجيل الخروج من جميع الأجهزة ✓');
+    } catch (e: any) {
+      showMsg('err', e.message.includes('Vercel') 
+        ? 'تسجيل الخروج الإجباري يعمل فقط على الموقع المنشور (Vercel)، وليس محلياً.' 
+        : e.message);
+    } finally {
+      setRevoking(false);
+    }
+  }
+
+  async function handleUpdateAuth(e: React.FormEvent) {
+    e.preventDefault();
+    if (!targetUid) return;
+    if (!newEmail && !newPassword) return;
+    setUpdatingAuth(true);
+    try {
+      const action = newEmail && newPassword ? 'updateEmailAndPassword' : newEmail ? 'updateEmail' : 'updatePassword';
+      await callAuthApi({ targetUid, action, newEmail: newEmail || undefined, newPassword: newPassword || undefined });
+      if (newEmail) onClientUpdated({ ...client, email: newEmail });
+      setNewEmail(''); setNewPassword('');
+      showMsg('ok', 'تم تحديث بيانات الدخول وتسجيل الخروج من الأجهزة ✓');
+    } catch (e: any) {
+      showMsg('err', e.message);
+    } finally {
+      setUpdatingAuth(false);
+    }
+  }
+
+  if (loadingUid) return <div className="flex justify-center py-16"><Loader2 size={24} className="animate-spin text-[#E8520D]" /></div>;
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+
+      {/* Status message */}
+      {msg && (
+        <div className={`rounded-xl px-4 py-3 text-sm font-medium border ${
+          msg.type === 'ok' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'
+        }`}>{msg.text}</div>
+      )}
+
+      {/* Subscription Info Card */}
+      <div className={`bg-[#0f0e0d] border rounded-2xl p-4 sm:p-5 space-y-3 ${
+        isExpired ? 'border-red-500/20' : isWarning ? 'border-yellow-500/20' : 'border-white/5'
+      }`}>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+            isExpired ? 'bg-red-500/15 text-red-400' : isWarning ? 'bg-yellow-500/15 text-yellow-400' : 'bg-green-500/15 text-green-400'
+          }`}>
+            {isExpired ? <Lock size={20} /> : isWarning ? <Bell size={20} /> : <LockOpen size={20} />}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="font-bold text-sm">حالة الاشتراك</p>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                isExpired ? 'bg-red-500/10 text-red-400 border-red-500/20' 
+                : isWarning ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                : 'bg-green-500/10 text-green-400 border-green-500/20'
+              }`}>
+                {isExpired ? 'منتهي' : isWarning ? `متبقي ${daysLeft} أيام` : 'نشط'}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+              {client.subscriptionPlan && <p className="text-xs text-[#E8520D]">الباقة: {client.subscriptionPlan}</p>}
+              {client.endDate && <p className="text-xs text-white/40">ينتهي: <span className={`font-bold ${isExpired ? 'text-red-400' : isWarning ? 'text-yellow-400' : 'text-white/70'}`}>{client.endDate}</span></p>}
+              {client.isLocked && client.lockedAt && <p className="text-xs text-red-400/60">موقوف منذ: {client.lockedAt.slice(0, 10)}</p>}
+            </div>
+          </div>
+        </div>
+
+        {/* Action buttons — stack on mobile */}
+        <div className="flex flex-col sm:flex-row gap-2">
+          {client.isLocked || isExpired ? (
+            <>
+              <button
+                onClick={() => setShowRenewal(true)}
+                disabled={renewing}
+                className="flex-1 flex items-center justify-center gap-2 font-bold px-4 py-3 rounded-xl text-sm transition disabled:opacity-50 bg-gradient-to-r from-[#E8520D] to-[#FF7700] text-white hover:from-[#C9440A] hover:to-[#FF8830] shadow-[0_4px_15px_rgba(232, 82, 13, 0.25)] active:scale-[0.98]"
+              >
+                {renewing ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+                تجديد الاشتراك
+              </button>
+              {!isExpired && (
+                <button
+                  onClick={handleToggleLock}
+                  disabled={locking}
+                  className="flex items-center justify-center gap-2 font-bold px-4 py-3 rounded-xl text-sm transition disabled:opacity-50 bg-green-500/15 text-green-400 hover:bg-green-500/25 border border-green-500/20"
+                >
+                  {locking ? <Loader2 size={15} className="animate-spin" /> : <LockOpen size={15} />}
+                  إعادة تفعيل فقط
+                </button>
+              )}
+            </>
+          ) : (
+            <button
+              onClick={handleToggleLock}
+              disabled={locking}
+              className="flex items-center justify-center gap-2 font-bold px-4 py-3 rounded-xl text-sm transition disabled:opacity-50 bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/20"
+            >
+              {locking ? <Loader2 size={15} className="animate-spin" /> : <Lock size={15} />}
+              تعليق الحساب
+            </button>
+          )}
+        </div>
+
+        {!client.isLocked && !isExpired && (
+          <p className="text-xs text-white/30 bg-white/3 rounded-xl p-3">
+            عند تعليق الحساب، لن يتمكن العميل من الدخول إلى المنصة حتى تقوم بإعادة تفعيله.
+            يحدث هذا تلقائياً عند انتهاء تاريخ الاشتراك.
+          </p>
+        )}
+      </div>
+
+      {/* Renewal Form (expandable) */}
+      <AnimatePresence>
+        {showRenewal && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+            className="bg-[#0f0e0d] border border-[#E8520D]/20 rounded-2xl p-4 sm:p-5 space-y-4 overflow-hidden"
+          >
+            <div className="flex items-center justify-between">
+              <h4 className="font-bold text-sm text-[#E8520D] flex items-center gap-2"><Plus size={15} />تجديد الاشتراك</h4>
+              <button onClick={() => setShowRenewal(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/10 transition"><X size={14} /></button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-white/50 block mb-1.5">نوع الباقة</label>
+                <select value={renewPackage} onChange={(e) => setRenewPackage(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-sm text-white outline-none focus:border-[#E8520D]/60 transition">
+                  <option value="اقتصادية" className="bg-[#0f0e0d]">اقتصادية</option>
+                  <option value="VIP" className="bg-[#0f0e0d]">VIP</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-white/50 block mb-1.5">المدة</label>
+                <select value={renewDuration} onChange={(e) => setRenewDuration(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-sm text-white outline-none focus:border-[#E8520D]/60 transition">
+                  <option value="1" className="bg-[#0f0e0d]">شهر واحد</option>
+                  <option value="3" className="bg-[#0f0e0d]">3 شهور</option>
+                  <option value="6" className="bg-[#0f0e0d]">6 شهور</option>
+                </select>
+              </div>
+            </div>
+            <button
+              onClick={handleRenewSubscription}
+              disabled={renewing}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#E8520D] to-[#FF7700] hover:from-[#C9440A] hover:to-[#FF8830] disabled:opacity-60 text-white font-bold py-3.5 rounded-xl text-sm transition shadow-[0_4px_15px_rgba(232, 82, 13, 0.25)] active:scale-[0.98]"
+            >
+              {renewing ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+              {renewing ? 'جاري التجديد...' : 'تأكيد التجديد وإعادة التفعيل'}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Force logout */}
+      <div className="bg-[#0f0e0d] border border-white/5 rounded-2xl p-5 space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-orange-500/15 text-orange-400 flex items-center justify-center">
+            <LogOut size={18} />
+          </div>
+          <div className="flex-1">
+            <p className="font-bold text-sm">تسجيل الخروج الإجباري</p>
+            <p className="text-xs text-white/40">إنهاء جميع جلسات العميل على كل الأجهزة فوراً</p>
+          </div>
+          <button
+            onClick={handleRevokeTokens}
+            disabled={revoking || !targetUid}
+            className="flex items-center gap-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/20 font-bold px-4 py-2 rounded-xl text-sm transition disabled:opacity-50"
+          >
+            {revoking ? <Loader2 size={15} className="animate-spin" /> : <LogOut size={15} />}
+            تسجيل خروج
+          </button>
+        </div>
+      </div>
+
+      {/* Change email / password */}
+      <div className="bg-[#0f0e0d] border border-white/5 rounded-2xl p-5 space-y-4">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-9 h-9 rounded-xl bg-[#E8520D]/15 text-[#E8520D] flex items-center justify-center">
+            <KeyRound size={18} />
+          </div>
+          <div>
+            <p className="font-bold text-sm">تغيير بريد / كلمة مرور العميل</p>
+            <p className="text-xs text-white/40">بعد التغيير سيتم تسجيل خروجه من جميع الأجهزة تلقائياً</p>
+          </div>
+        </div>
+
+        {!targetUid ? (
+          <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl p-3">
+            لم يتم ربط هذا العميل بحساب Firebase Auth بعد.
+          </p>
+        ) : (
+          <form onSubmit={handleUpdateAuth} className="space-y-4">
+            <div>
+              <label className="text-xs text-white/50 block mb-1.5">البريد الإلكتروني الجديد (اختياري)</label>
+              <input
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder={client.email}
+                autoComplete="off"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#E8520D]/60 transition"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-white/50 block mb-1.5">كلمة المرور الجديدة (اختياري)</label>
+              <div className="relative">
+                <input
+                  type={showPass ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="6 أحرف على الأقل..."
+                  autoComplete="new-password"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pl-12 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#E8520D]/60 transition"
+                />
+                <button type="button" onClick={() => setShowPass(s => !s)} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition">
+                  {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={updatingAuth || (!newEmail && !newPassword)}
+              className="w-full flex items-center justify-center gap-2 bg-[#E8520D] hover:bg-[#C9440A] disabled:opacity-50 text-white font-bold py-3 rounded-xl text-sm transition"
+            >
+              {updatingAuth ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+              {updatingAuth ? 'جاري التحديث...' : 'حفظ وتسجيل الخروج الإجباري'}
+            </button>
+          </form>
+        )}
+      </div>
     </motion.div>
   );
 }
@@ -698,23 +1107,31 @@ function CheckInsViewer({ clientId }: { clientId: string }) {
   }, [clientId]);
 
   const handleReply = async (checkInId: string) => {
-    const txt = replyText[checkInId];
+    const txt = replyText[checkInId]?.trim();
     if (!txt) return;
     setSendingReply(checkInId);
-    await addCoachReplyToCheckIn(checkInId, txt);
-    setCheckIns(prev => prev.map(c => c.id === checkInId ? { ...c, coachReply: txt, coachReviewed: true } : c));
-    setSendingReply(null);
+    try {
+      await addCoachReplyToCheckIn(checkInId, txt);
+      // Update local state immediately so the UI reflects the confirmed reply
+      setCheckIns(prev => prev.map(c =>
+        c.id === checkInId ? { ...c, coachReply: txt, coachReviewed: true } : c
+      ));
+      // Clear the reply textarea for this check-in
+      setReplyText(prev => { const next = { ...prev }; delete next[checkInId]; return next; });
+    } finally {
+      setSendingReply(null);
+    }
   };
 
-  if (loading) return <div className="flex justify-center py-16"><Loader2 className="animate-spin text-[#FF5500]" /></div>;
+  if (loading) return <div className="flex justify-center py-16"><Loader2 className="animate-spin text-[#E8520D]" /></div>;
   if (checkIns.length === 0) return <div className="text-center py-16 text-white/40">لم يرسل العميل أي تقارير بعد.</div>;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
       {checkIns.map(ci => (
-        <div key={ci.id} className="bg-[#0e0e0e] border border-white/5 rounded-2xl p-5 space-y-4">
+        <div key={ci.id} className="bg-[#0f0e0d] border border-white/5 rounded-2xl p-5 space-y-4">
           <div className="flex items-center justify-between">
-            <span className="bg-[#FF5500]/10 text-[#FF5500] font-bold text-xs px-2.5 py-1 rounded-lg">{ci.date}</span>
+            <span className="bg-[#E8520D]/10 text-[#E8520D] font-bold text-xs px-2.5 py-1 rounded-lg">{ci.date}</span>
             <div className="flex items-center gap-1.5 text-xs text-white/50">
               طاقة: {[1,2,3,4,5].map(n => <Star key={n} size={10} className={ci.energyLevel >= n ? 'fill-yellow-400 text-yellow-400' : 'text-white/10'} />)}
             </div>
@@ -740,8 +1157,8 @@ function CheckInsViewer({ clientId }: { clientId: string }) {
 
           <div className="border-t border-white/5 pt-4 mt-2">
             {ci.coachReviewed ? (
-              <div className="bg-[#FF5500]/10 border border-[#FF5500]/20 rounded-xl p-4">
-                <span className="text-[#FF5500] text-xs font-bold uppercase block mb-1">ردك السابق</span>
+              <div className="bg-[#E8520D]/10 border border-[#E8520D]/20 rounded-xl p-4">
+                <span className="text-[#E8520D] text-xs font-bold uppercase block mb-1">ردك السابق</span>
                 <p className="text-white/90 text-sm leading-relaxed">{ci.coachReply}</p>
               </div>
             ) : (
@@ -750,13 +1167,13 @@ function CheckInsViewer({ clientId }: { clientId: string }) {
                   value={replyText[ci.id] || ''}
                   onChange={e => setReplyText({ ...replyText, [ci.id]: e.target.value })}
                   placeholder="اكتب ردك على التقرير..."
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-white/30 outline-none focus:border-[#FF5500]/50 resize-none"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-white/30 outline-none focus:border-[#E8520D]/50 resize-none"
                   rows={2}
                 />
                 <button 
                   onClick={() => handleReply(ci.id)}
                   disabled={!replyText[ci.id] || sendingReply === ci.id}
-                  className="bg-[#FF5500] hover:bg-[#FF6620] disabled:opacity-50 text-white font-bold text-xs px-4 py-2 rounded-lg transition flex items-center gap-2"
+                  className="bg-[#E8520D] hover:bg-[#C9440A] disabled:opacity-50 text-white font-bold text-xs px-4 py-2 rounded-lg transition flex items-center gap-2"
                 >
                   {sendingReply === ci.id ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                   إرسال الرد
@@ -853,7 +1270,7 @@ function StatsEditor({ client, saving, setSaving, onSaved }: {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-5">
-      <div className="bg-[#0e0e0e] border border-white/5 rounded-2xl p-5 space-y-4">
+      <div className="bg-[#0f0e0d] border border-white/5 rounded-2xl p-5 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-sm">بيانات العميل</h3>
           <SaveBtn saving={saving} onClick={saveProfile} />
@@ -863,14 +1280,14 @@ function StatsEditor({ client, saving, setSaving, onSaved }: {
           <Input label="الباقة (مثال: VIP - 3 شهور)" value={subPlan} onChange={(e) => setSubPlan(e.target.value)} placeholder="اسم الباقة" />
           <div>
             <label className="text-xs text-white/50 block mb-1.5">تاريخ الانتهاء</label>
-            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#FF5500]/60 transition" />
+            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#E8520D]/60 transition" />
           </div>
         </div>
         <Textarea label="ملاحظات المدرب" value={coachNotes} onChange={(e) => setCoachNotes(e.target.value)} placeholder="ملاحظات خاصة..." />
         {saved && <p className="text-green-400 text-xs">✓ تم الحفظ</p>}
       </div>
 
-      <div className="bg-[#0e0e0e] border border-white/5 rounded-2xl p-5 space-y-4">
+      <div className="bg-[#0f0e0d] border border-white/5 rounded-2xl p-5 space-y-4">
         <h3 className="font-bold text-sm">إضافة قياس جديد</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input label="الوزن (kg) *" type="number" step="0.1" value={newWeight} onChange={(e) => setNewWeight(e.target.value)} placeholder="82.5" />
@@ -883,7 +1300,7 @@ function StatsEditor({ client, saving, setSaving, onSaved }: {
         </button>
       </div>
 
-      <div className="bg-[#0e0e0e] border border-white/5 rounded-2xl p-5">
+      <div className="bg-[#0f0e0d] border border-white/5 rounded-2xl p-5">
         <h3 className="font-bold text-sm mb-4">سجل القياسات</h3>
         {!client.bodyStats?.length ? (
           <p className="text-white/30 text-sm">لا توجد قياسات بعد</p>
@@ -902,10 +1319,10 @@ function StatsEditor({ client, saving, setSaving, onSaved }: {
       </div>
 
       {/* ── Progress Photos ── */}
-      <div className="bg-[#0e0e0e] border border-white/5 rounded-2xl p-5 space-y-4">
+      <div className="bg-[#0f0e0d] border border-white/5 rounded-2xl p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Image size={16} className="text-[#FF5500]" />
+            <Image size={16} className="text-[#E8520D]" />
             <h3 className="font-bold text-sm">صور التقدم</h3>
           </div>
           <span className="text-white/30 text-xs">{(client.progressPhotos || []).length} / 5</span>
@@ -927,7 +1344,7 @@ function StatsEditor({ client, saving, setSaving, onSaved }: {
         )}
 
         {(client.progressPhotos || []).length < 5 && (
-          <label className="flex items-center gap-2 cursor-pointer bg-white/5 hover:bg-white/8 border border-dashed border-white/15 hover:border-[#FF5500]/40 rounded-xl px-4 py-3 text-sm text-white/50 hover:text-white transition w-fit">
+          <label className="flex items-center gap-2 cursor-pointer bg-white/5 hover:bg-white/8 border border-dashed border-white/15 hover:border-[#E8520D]/40 rounded-xl px-4 py-3 text-sm text-white/50 hover:text-white transition w-fit">
             {photoSaving ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />}
             {photoSaving ? 'جاري الرفع...' : 'رفع صور'}
             <input type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoUpload} disabled={photoSaving} />
@@ -949,10 +1366,10 @@ function AdminDayCard({ day, updateDay, deleteDay, addExercise, updateExercise, 
   }
 
   return (
-    <div className="bg-[#0e0e0e] border border-white/5 rounded-2xl overflow-hidden transition-all duration-300">
+    <div className="bg-[#0f0e0d] border border-white/5 rounded-2xl overflow-hidden transition-all duration-300">
       <div className="border-b border-white/5 px-5 py-3 flex items-center gap-3 bg-white/2">
         <GripVertical size={16} className="text-white/20 flex-shrink-0" />
-        <button onClick={() => setIsOpen(!isOpen)} className="p-1 text-white/40 hover:text-[#FF5500] hover:bg-[#FF5500]/10 rounded-lg transition">
+        <button onClick={() => setIsOpen(!isOpen)} className="p-1 text-white/40 hover:text-[#E8520D] hover:bg-[#E8520D]/10 rounded-lg transition">
           {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </button>
         <input value={day.dayName} onChange={(e) => updateDay(day.id, 'dayName', e.target.value)}
@@ -978,7 +1395,7 @@ function AdminDayCard({ day, updateDay, deleteDay, addExercise, updateExercise, 
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => setShowPicker(true)}
-              className="flex items-center justify-center gap-1.5 border border-[#FF5500]/30 hover:border-[#FF5500]/60 bg-[#FF5500]/5 hover:bg-[#FF5500]/10 text-[#FF5500]/80 hover:text-[#FF5500] py-2.5 rounded-xl text-xs font-medium transition"
+              className="flex items-center justify-center gap-1.5 border border-[#E8520D]/30 hover:border-[#E8520D]/60 bg-[#E8520D]/5 hover:bg-[#E8520D]/10 text-[#E8520D]/80 hover:text-[#E8520D] py-2.5 rounded-xl text-xs font-medium transition"
             >
               <Dumbbell size={13} />من القائمة
             </button>
@@ -1048,7 +1465,7 @@ function ExerciseCard({ ex, dayId, updateExercise, deleteExercise }: any) {
             onChange={(e) => handleSetsChange(e.target.value)}
             onFocus={(e) => e.target.select()}
             placeholder="3"
-            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 outline-none focus:border-[#FF5500]/50 transition text-center"
+            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 outline-none focus:border-[#E8520D]/50 transition text-center"
           />
         </div>
         <div>
@@ -1057,7 +1474,7 @@ function ExerciseCard({ ex, dayId, updateExercise, deleteExercise }: any) {
             value={ex.reps}
             onChange={(e) => updateExercise(dayId, ex.id, 'reps', e.target.value)}
             placeholder="مثال: 8-12"
-            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 outline-none focus:border-[#FF5500]/50 transition"
+            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 outline-none focus:border-[#E8520D]/50 transition"
           />
         </div>
       </div>
@@ -1072,7 +1489,7 @@ function ExerciseCard({ ex, dayId, updateExercise, deleteExercise }: any) {
                 value={String((ex as Record<string, unknown>)[field] || '')}
                 onChange={(e) => updateExercise(dayId, ex.id, field, e.target.value)}
                 placeholder={ph}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 outline-none focus:border-[#FF5500]/50 transition"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 outline-none focus:border-[#E8520D]/50 transition"
               />
             </div>
           )
@@ -1132,11 +1549,11 @@ function WorkoutEditor({ clientId, clientName, saving, setSaving }: { clientId: 
   const deleteExercise = (dayId: string, exId: string) =>
     updatePlan((p) => ({ ...p, days: p.days.map((d) => d.id === dayId ? { ...d, exercises: d.exercises.filter((e) => e.id !== exId) } : d) }));
 
-  if (loading || !plan) return <div className="flex justify-center py-16"><Loader2 size={24} className="animate-spin text-[#FF5500]" /></div>;
+  if (loading || !plan) return <div className="flex justify-center py-16"><Loader2 size={24} className="animate-spin text-[#E8520D]" /></div>;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
-      <div className="bg-[#0e0e0e] border border-white/5 rounded-2xl p-5 space-y-4">
+      <div className="bg-[#0f0e0d] border border-white/5 rounded-2xl p-5 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-sm">برنامج التمارين</h3>
           <div className="flex items-center gap-2">
@@ -1154,7 +1571,7 @@ function WorkoutEditor({ clientId, clientName, saving, setSaving }: { clientId: 
             value={plan.googleSheetUrl || ''}
             onChange={(e) => updatePlan((p) => ({ ...p, googleSheetUrl: e.target.value }))}
             placeholder="https://docs.google.com/spreadsheets/..."
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#FF5500]/60 transition"
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#E8520D]/60 transition"
           />
         </div>
       </div>
@@ -1174,7 +1591,7 @@ function WorkoutEditor({ clientId, clientName, saving, setSaving }: { clientId: 
       </div>
 
       <button onClick={addDay}
-        className="w-full border border-dashed border-white/10 hover:border-[#FF5500]/40 text-white/30 hover:text-[#FF5500] py-3 rounded-xl text-sm font-medium transition flex items-center justify-center gap-2">
+        className="w-full border border-dashed border-white/10 hover:border-[#E8520D]/40 text-white/30 hover:text-[#E8520D] py-3 rounded-xl text-sm font-medium transition flex items-center justify-center gap-2">
         <Plus size={16} />إضافة يوم تدريبي
       </button>
     </motion.div>
@@ -1220,11 +1637,11 @@ function NutritionEditor({ clientId, clientName, saving, setSaving }: { clientId
     set('meals', (plan?.meals || []).map((m) => m.id === id ? { ...m, [field]: value } : m));
   const deleteMeal = (id: string) => set('meals', (plan?.meals || []).filter((m) => m.id !== id));
 
-  if (loading || !plan) return <div className="flex justify-center py-16"><Loader2 size={24} className="animate-spin text-[#FF5500]" /></div>;
+  if (loading || !plan) return <div className="flex justify-center py-16"><Loader2 size={24} className="animate-spin text-[#E8520D]" /></div>;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-5">
-      <div className="bg-[#0e0e0e] border border-white/5 rounded-2xl p-5 space-y-4">
+      <div className="bg-[#0f0e0d] border border-white/5 rounded-2xl p-5 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-sm">خطة التغذية</h3>
           <div className="flex items-center gap-2">
@@ -1234,7 +1651,7 @@ function NutritionEditor({ clientId, clientName, saving, setSaving }: { clientId
         </div>
         <Textarea label="ملاحظات المدرب" value={plan.coachNotes || ''} onChange={(e) => set('coachNotes', e.target.value)} placeholder="تعليمات تغذية..." />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {([['سعرات يومية', 'dailyCalories', '#FF5500'], ['بروتين (g)', 'proteinG', '#3b82f6'], ['كربوهيدرات (g)', 'carbsG', '#f97316'], ['دهون (g)', 'fatG', '#eab308']] as [string, keyof NutritionPlan, string][]).map(([label, field, color]) => (
+          {([['سعرات يومية', 'dailyCalories', '#E8520D'], ['بروتين (g)', 'proteinG', '#3b82f6'], ['كربوهيدرات (g)', 'carbsG', '#f97316'], ['دهون (g)', 'fatG', '#eab308']] as [string, keyof NutritionPlan, string][]).map(([label, field, color]) => (
             <div key={String(field)}>
               <label className="text-xs text-white/50 block mb-1.5">{label}</label>
               <input type="number" value={plan[field] as number}
@@ -1249,9 +1666,9 @@ function NutritionEditor({ clientId, clientName, saving, setSaving }: { clientId
       <div className="space-y-3">
         <h3 className="font-bold text-sm">الوجبات</h3>
         {plan.meals.map((meal, i) => (
-          <div key={meal.id} className="bg-[#0e0e0e] border border-white/5 rounded-xl p-4 space-y-3">
+          <div key={meal.id} className="bg-[#0f0e0d] border border-white/5 rounded-xl p-4 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded-lg bg-[#FF5500]/10 text-[#FF5500] font-black text-xs flex items-center justify-center flex-shrink-0">{i + 1}</div>
+              <div className="w-7 h-7 rounded-lg bg-[#E8520D]/10 text-[#E8520D] font-black text-xs flex items-center justify-center flex-shrink-0">{i + 1}</div>
               <input value={meal.name} onChange={(e) => updateMeal(meal.id, 'name', e.target.value)}
                 placeholder="اسم الوجبة..." className="flex-1 bg-transparent font-semibold text-sm outline-none border-b border-white/10 pb-1 placeholder:text-white/25" />
               <button onClick={() => deleteMeal(meal.id)} className="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition"><X size={14} /></button>
@@ -1262,18 +1679,18 @@ function NutritionEditor({ clientId, clientName, saving, setSaving }: { clientId
                 <textarea value={meal.foods} onChange={(e) => updateMeal(meal.id, 'foods', e.target.value)}
                   placeholder="مثال:&#10;200 جرام أرز مسلوق&#10;3 بيض مسلوق"
                   rows={3}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#FF5500]/50 transition resize-y" />
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#E8520D]/50 transition resize-y" />
               </div>
               <div>
                 <label className="text-xs text-white/40 block mb-1.5">السعرات</label>
                 <input type="number" value={meal.calories} onChange={(e) => updateMeal(meal.id, 'calories', parseInt(e.target.value))}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#FF5500]/50 transition" />
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#E8520D]/50 transition" />
               </div>
             </div>
           </div>
         ))}
         <button onClick={addMeal}
-          className="w-full border border-dashed border-white/10 hover:border-[#FF5500]/40 text-white/30 hover:text-[#FF5500] py-3 rounded-xl text-sm font-medium transition flex items-center justify-center gap-2">
+          className="w-full border border-dashed border-white/10 hover:border-[#E8520D]/40 text-white/30 hover:text-[#E8520D] py-3 rounded-xl text-sm font-medium transition flex items-center justify-center gap-2">
           <Plus size={16} />إضافة وجبة
         </button>
       </div>

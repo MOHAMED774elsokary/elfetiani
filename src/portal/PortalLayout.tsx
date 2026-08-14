@@ -20,12 +20,12 @@ interface Props {
 
 const Logo = () => (
   <div className="flex items-center gap-2.5">
-    <div className="w-8 h-8 flex-shrink-0 rounded-lg bg-gradient-to-br from-[#FF5500] to-[#FF3300] flex items-center justify-center font-black text-white shadow-[0_0_15px_rgba(255,85,0,0.3)]">
+    <div className="w-8 h-8 flex-shrink-0 rounded-lg bg-gradient-to-br from-[#E8520D] to-[#C44108] flex items-center justify-center font-black text-white shadow-[0_0_15px_rgba(232,82,13,0.25)]">
       F
     </div>
     <div>
       <div className="font-black text-sm text-white leading-none">EL FETIANI</div>
-      <div className="text-[#FF5500] text-xs font-bold tracking-widest leading-none">COACHING</div>
+      <div className="text-[#E8520D] text-xs font-bold tracking-widest leading-none">COACHING</div>
     </div>
   </div>
 );
@@ -67,9 +67,9 @@ export default function PortalLayout({ children, title }: Props) {
   const MOBILE_NAV_HEIGHT = 'calc(64px + env(safe-area-inset-bottom, 0px))';
 
   return (
-    <div className="min-h-[100dvh] bg-[#070707] text-white flex" dir="rtl">
+    <div className="min-h-[100dvh] bg-[#080706] text-[#f0ece8] flex" dir="rtl">
       {/* Sidebar (Desktop Only) */}
-      <aside className="hidden md:flex w-64 bg-[#0e0e0e] border-l border-white/5 flex-col flex-shrink-0 sticky top-0 h-[100dvh] overflow-y-auto">
+      <aside className="hidden md:flex w-64 bg-[#0d0c0b] border-l border-white/[0.06] flex-col flex-shrink-0 sticky top-0 h-[100dvh] overflow-y-auto">
         <div className="p-6 border-b border-white/5">
           <a href="/#/" title="العودة للصفحة الرئيسية" className="block hover:opacity-75 transition-opacity">
             <Logo />
@@ -77,7 +77,7 @@ export default function PortalLayout({ children, title }: Props) {
           <div className="mt-4 bg-white/5 rounded-xl p-3">
             <div className="text-xs text-white/40 mb-0.5">مرحباً،</div>
             <div className="font-bold text-sm truncate">{currentUser?.email}</div>
-            <div className="text-xs text-[#FF5500] mt-0.5">{isCoach ? 'المدرب' : 'عميل'}</div>
+            <div className="text-xs text-[#E8520D] mt-0.5">{isCoach ? 'المدرب' : 'عميل'}</div>
           </div>
         </div>
 
@@ -90,7 +90,7 @@ export default function PortalLayout({ children, title }: Props) {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors duration-150 ${
                   isActive
-                    ? 'bg-[#FF5500]/15 text-[#FF5500] border border-[#FF5500]/20'
+                    ? 'bg-[#E8520D]/15 text-[#E8520D] border border-[#E8520D]/20'
                     : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'
                 }`
               }
@@ -115,10 +115,10 @@ export default function PortalLayout({ children, title }: Props) {
       {/* Main */}
       <main className="flex-1 flex flex-col min-w-0">
         {/* Topbar — stable sticky with no backdrop-filter on mobile for perf */}
-        <header className="border-b border-white/5 bg-[#0e0e0e] sticky top-0 z-30 px-4 md:px-8 flex items-center justify-between pt-safe"
+        <header className="border-b border-white/[0.06] bg-[#0d0c0b] sticky top-0 z-30 px-4 md:px-8 flex items-center justify-between pt-safe"
           style={{ minHeight: '56px' }}>
           <div className="flex items-center gap-3 py-3 md:py-4">
-            <div className="md:hidden w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF5500] to-[#FF3300] flex items-center justify-center font-black text-white text-sm shadow-[0_0_15px_rgba(255,85,0,0.3)] flex-shrink-0">
+            <div className="md:hidden w-8 h-8 rounded-lg bg-gradient-to-br from-[#E8520D] to-[#C44108] flex items-center justify-center font-black text-white text-sm shadow-[0_0_15px_rgba(232,82,13,0.25)] flex-shrink-0">
               F
             </div>
             <h1 className="font-bold text-lg md:text-xl truncate max-w-[60vw] md:max-w-none">{title}</h1>
@@ -148,7 +148,7 @@ export default function PortalLayout({ children, title }: Props) {
 
       {/* Mobile Bottom Navigation — fixed with safe-area */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0e0e0e] border-t border-white/5 z-40 flex items-center justify-around px-1"
+        className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0d0c0b] border-t border-white/[0.06] z-40 flex items-center justify-around px-1"
         style={{
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           height: MOBILE_NAV_HEIGHT,
@@ -162,14 +162,14 @@ export default function PortalLayout({ children, title }: Props) {
             className={({ isActive }) =>
               `flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-bold transition-colors duration-150 flex-1 max-w-[80px] active:scale-90 ${
                 isActive
-                  ? 'text-[#FF5500]'
+                  ? 'text-[#E8520D]'
                   : 'text-white/40'
               }`
             }
           >
             {({ isActive }) => (
               <>
-                <Icon size={22} className={isActive ? 'drop-shadow-[0_0_8px_rgba(255,85,0,0.5)]' : ''} />
+                <Icon size={22} className={isActive ? 'drop-shadow-[0_0_8px_rgba(232, 82, 13, 0.5)]' : ''} />
                 <span className="truncate w-full text-center leading-none">{label}</span>
               </>
             )}

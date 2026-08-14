@@ -33,22 +33,26 @@ export default function Hero({ lang }: HeroProps) {
       {/* Left side image background */}
       <div className="absolute inset-0 z-0 flex flex-col lg:flex-row">
         <div className="w-full h-[65vh] lg:h-full lg:w-1/2 relative overflow-hidden">
-          <motion.img 
-            style={{ scale, opacity }}
+          <img 
+            style={{ scale: scale as unknown as string, opacity: opacity as unknown as string }}
             src="/hero-back.jpg.png"
-            alt="Coach" 
+            alt="Coach el Fetiani"
+            width="800"
+            height="1000"
+            fetchPriority="high"
+            decoding="sync"
             className="w-full h-full object-cover object-[center_top] md:object-center origin-top opacity-80"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/90 to-transparent lg:bg-gradient-to-l lg:via-[#050505]/80 lg:to-black/30" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#080706] via-[#080706]/90 to-transparent lg:bg-gradient-to-l lg:via-[#080706]/80 lg:to-black/30" />
         </div>
-        <div className="flex-1 bg-[#050505]"></div>
+        <div className="flex-1 bg-[#080706]"></div>
       </div>
 
       {/* Floating ambient particles */}
       {[...Array(3)].map((_, i) => (
         <motion.div
           key={i}
-          className="absolute rounded-full bg-[#FF5500] pointer-events-none"
+          className="absolute rounded-full bg-[#E8520D] pointer-events-none"
           style={{
             width: `${(i + 1) * 4}px`,
             height: `${(i + 1) * 4}px`,
@@ -78,7 +82,7 @@ export default function Hero({ lang }: HeroProps) {
           >
             <span className="block text-white mb-2 leading-[1.1]">{t.headlineMain}</span>
             <motion.span 
-              className="block text-hollow drop-shadow-[0_0_15px_rgba(255,85,0,0.8)] leading-[1.3]"
+              className="block text-hollow drop-shadow-[0_0_15px_rgba(232, 82, 13, 0.8)] leading-[1.3]"
               initial={{ opacity: 0, scale: 1.1 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
@@ -97,7 +101,7 @@ export default function Hero({ lang }: HeroProps) {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-              whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(255,85,0,0.5)" }}
+              whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(232, 82, 13, 0.5)" }}
               whileTap={{ scale: 0.97 }}
               className="inline-block cursor-pointer text-center bg-primary text-white font-bold text-lg lg:text-xl px-10 py-4 rounded-lg shadow-lg mb-12 lg:mb-16 w-full sm:w-auto relative overflow-hidden group"
             >
